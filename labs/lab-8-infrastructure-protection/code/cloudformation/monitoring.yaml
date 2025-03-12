@@ -1,0 +1,267 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Lab 8: Infrastructure and Network Protection - Network Monitoring Configuration'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: Lab8
+    Description: Environment name for resource tagging
+  EmailAddress:
+    Type: String
+    Description: Email address for monitoring notifications
+  RetentionDays:
+    Type: Number
+    Default: 30
+    Description: Number of days to retain monitoring data
+
+Resources:
+  # SNS Topic for Monitoring Alerts
+  MonitoringAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${Environment}-monitoring-alerts
+      DisplayName: Network Monitoring Alerts
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  MonitoringEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref MonitoringAlertTopic
+      Protocol: email
+      Endpoint: !Ref EmailAddress
+
+  # CloudWatch Log Groups
+  NetworkMonitoringLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/network/${Environment}
+      RetentionInDays: !Ref RetentionDays
+
+  SecurityEventsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/security/${Environment}
+      RetentionInDays: !Ref RetentionDays
+
+  # CloudWatch Metrics and Alarms
+  VPCFlowLogsMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Sub /aws/vpc/flowlogs/${Environment}
+      FilterPattern: '[version, account_id, interface_id, srcaddr, dstaddr, srcport, dstport, protocol, packets, bytes, start, end, action, log_status]'
+      MetricTransformations:
+        - MetricNamespace: !Sub ${Environment}/NetworkTraffic
+          MetricName: RejectedConnections
+          MetricValue: 1
+          DefaultValue: 0
+
+  RejectedConnectionsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${Environment}-RejectedConnections
+      AlarmDescription: Alert when there are too many rejected connections
+      MetricName: RejectedConnections
+      Namespace: !Sub ${Environment}/NetworkTraffic
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref MonitoringAlertTopic
+      OKActions:
+        - !Ref MonitoringAlertTopic
+
+  # GuardDuty Configuration
+  GuardDutyDetector:
+    Type: AWS::GuardDuty::Detector
+    Properties:
+      Enable: true
+      FindingPublishingFrequency: FIFTEEN_MINUTES
+      DataSources:
+        FlowLogs:
+          Enable: true
+        S3Logs:
+          Enable: true
+
+  GuardDutyEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${Environment}-guardduty-findings
+      Description: Route GuardDuty findings to SNS
+      EventPattern:
+        source:
+          - aws.guardduty
+        detail-type:
+          - GuardDuty Finding
+      State: ENABLED
+      Targets:
+        - Arn: !Ref MonitoringAlertTopic
+          Id: GuardDutyFindings
+
+  # Network Monitoring Dashboard
+  NetworkMonitoringDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub ${Environment}-network-monitoring
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "${Environment}/NetworkTraffic", "RejectedConnections", { "stat": "Sum" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Rejected Network Connections"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/NetworkELB", "ProcessedBytes", { "stat": "Sum" } ],
+                  [ ".", "ActiveFlowCount", { "stat": "Average" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Network Traffic Overview"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 24,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ "AWS/GuardDuty", "FindingsCount", { "stat": "Sum" } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "GuardDuty Findings"
+              }
+            }
+          ]
+        }
+
+  # Network Insights Configuration
+  NetworkInsightsPath:
+    Type: AWS::EC2::NetworkInsightsPath
+    Properties:
+      Source: !ImportValue
+        'Fn::Sub': ${Environment}-ALB-ARN
+      Destination: !ImportValue
+        'Fn::Sub': ${Environment}-DB-Subnet-1
+      Protocol: tcp
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Security Hub Configuration
+  SecurityHub:
+    Type: AWS::SecurityHub::Hub
+    Properties:
+      Tags:
+        Environment: !Ref Environment
+
+  SecurityHubEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${Environment}-securityhub-findings
+      Description: Route Security Hub findings to SNS
+      EventPattern:
+        source:
+          - aws.securityhub
+        detail-type:
+          - Security Hub Findings - Imported
+      State: ENABLED
+      Targets:
+        - Arn: !Ref MonitoringAlertTopic
+          Id: SecurityHubFindings
+
+  # IAM Role for Network Monitoring
+  NetworkMonitoringRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${Environment}-network-monitoring
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 
+                - ec2.amazonaws.com
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonVPCFullAccess
+      Policies:
+        - PolicyName: NetworkMonitoringPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/network/*
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeInstances
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                Resource: '*'
+
+Outputs:
+  MonitoringAlertTopicArn:
+    Description: Monitoring Alert Topic ARN
+    Value: !Ref MonitoringAlertTopic
+    Export:
+      Name: !Sub ${Environment}-Monitoring-Topic-ARN
+
+  NetworkMonitoringLogGroupName:
+    Description: Network Monitoring Log Group Name
+    Value: !Ref NetworkMonitoringLogGroup
+    Export:
+      Name: !Sub ${Environment}-Network-Monitoring-LogGroup
+
+  GuardDutyDetectorId:
+    Description: GuardDuty Detector ID
+    Value: !Ref GuardDutyDetector
+    Export:
+      Name: !Sub ${Environment}-GuardDuty-Detector-ID
+
+  NetworkMonitoringDashboardName:
+    Description: Network Monitoring Dashboard Name
+    Value: !Ref NetworkMonitoringDashboard
+    Export:
+      Name: !Sub ${Environment}-Network-Monitoring-Dashboard
+
+  NetworkMonitoringRoleArn:
+    Description: Network Monitoring Role ARN
+    Value: !GetAtt NetworkMonitoringRole.Arn
+    Export:
+      Name: !Sub ${Environment}-Network-Monitoring-Role-ARN 

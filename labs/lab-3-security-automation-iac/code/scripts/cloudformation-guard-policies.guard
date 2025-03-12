@@ -1,0 +1,326 @@
+# =============================================================================
+# CloudFormation Guard Security Policies
+# =============================================================================
+# This file contains security policies for CloudFormation templates
+# implemented using AWS CloudFormation Guard 2.x syntax.
+# 
+# These policies enforce security best practices for various AWS resources
+# to ensure infrastructure deployed through CloudFormation meets
+# organizational security requirements.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# S3 Bucket Security Policies
+# -----------------------------------------------------------------------------
+# Ensures S3 buckets are configured with appropriate security settings
+# including encryption, access logging, and public access blocks
+
+# Require server-side encryption for all S3 buckets
+rule s3_bucket_encryption_enabled {
+  # Check if the bucket has server-side encryption configured
+  AWS::S3::Bucket {
+    # Either BucketEncryption must be present or the bucket must have a bucket policy that enforces encryption
+    BucketEncryption exists or
+    when ServerSideEncryptionConfiguration !exists {
+      ServerSideEncryptionConfiguration exists
+    }
+  }
+}
+
+# Require S3 buckets to have access logging enabled
+rule s3_bucket_logging_enabled {
+  AWS::S3::Bucket {
+    # LoggingConfiguration must be present and properly configured
+    LoggingConfiguration exists
+    LoggingConfiguration is_struct
+    LoggingConfiguration {
+      DestinationBucketName exists
+      # Ensure the destination bucket name is not empty
+      DestinationBucketName != ""
+    }
+  }
+}
+
+# Prevent S3 buckets from allowing public access
+rule s3_bucket_no_public_access {
+  AWS::S3::Bucket {
+    # Check for explicit public access blocks
+    when PublicAccessBlockConfiguration exists {
+      PublicAccessBlockConfiguration {
+        # All public access block settings should be true
+        BlockPublicAcls == true
+        BlockPublicPolicy == true
+        IgnorePublicAcls == true
+        RestrictPublicBuckets == true
+      }
+    }
+    
+    # Ensure no bucket policy allows public access
+    when BucketPolicy exists {
+      BucketPolicy {
+        # Check that the policy doesn't contain "Effect": "Allow" with Principal: "*"
+        Statement[*] {
+          when Effect == "Allow" {
+            Principal != "*"
+            Principal not_equals {"AWS": "*"}
+          }
+        }
+      }
+    }
+  }
+}
+
+# -----------------------------------------------------------------------------
+# IAM Security Policies
+# -----------------------------------------------------------------------------
+# Ensures IAM resources follow the principle of least privilege
+# and other security best practices
+
+# Prevent IAM policies with full administrative access
+rule iam_no_admin_policy {
+  AWS::IAM::Policy {
+    # Check each policy statement
+    PolicyDocument {
+      Statement[*] {
+        # When the effect is Allow, ensure it's not granting "*" on "*"
+        when Effect == "Allow" {
+          Action != "*"
+          when Action is_list {
+            Action[*] != "*"
+          }
+          
+          # Check resource restrictions
+          Resource != "*"
+          when Resource is_list {
+            Resource[*] != "*"
+          }
+        }
+      }
+    }
+  }
+}
+
+# Require IAM roles to have a permissions boundary
+rule iam_role_permissions_boundary {
+  AWS::IAM::Role {
+    # Permissions boundary must be specified
+    PermissionsBoundary exists
+  }
+}
+
+# Ensure IAM users have MFA enabled
+rule iam_user_mfa_enabled {
+  AWS::IAM::User {
+    # LoginProfile indicates a console user who should have MFA
+    when LoginProfile exists {
+      MFADevices exists
+      MFADevices is_list
+      MFADevices not_empty
+    }
+  }
+}
+
+# -----------------------------------------------------------------------------
+# EC2 Security Policies
+# -----------------------------------------------------------------------------
+# Ensures EC2 instances and related resources are securely configured
+
+# Require EC2 instances to use IMDSv2
+rule ec2_require_imdsv2 {
+  AWS::EC2::Instance {
+    # Check for metadata options configuration
+    MetadataOptions exists
+    MetadataOptions is_struct
+    MetadataOptions {
+      # HttpTokens must be set to "required" for IMDSv2
+      HttpTokens == "required"
+    }
+  }
+}
+
+# Prevent security groups with overly permissive rules
+rule security_group_no_public_ingress {
+  AWS::EC2::SecurityGroup {
+    # Check each ingress rule
+    SecurityGroupIngress[*] {
+      # Ensure no rule allows all traffic (port 0-65535) from 0.0.0.0/0
+      when CidrIp exists {
+        CidrIp != "0.0.0.0/0" or
+        FromPort != 0 or
+        ToPort != 65535
+      }
+      
+      # Also check for IPv6 CIDR blocks
+      when CidrIpv6 exists {
+        CidrIpv6 != "::/0" or
+        FromPort != 0 or
+        ToPort != 65535
+      }
+    }
+  }
+}
+
+# Ensure security groups don't allow SSH from the internet
+rule security_group_no_public_ssh {
+  AWS::EC2::SecurityGroup {
+    # Check each ingress rule
+    SecurityGroupIngress[*] {
+      # Ensure no rule allows SSH (port 22) from 0.0.0.0/0
+      when CidrIp exists {
+        CidrIp != "0.0.0.0/0" or
+        FromPort != 22 or
+        ToPort != 22
+      }
+      
+      # Also check for IPv6 CIDR blocks
+      when CidrIpv6 exists {
+        CidrIpv6 != "::/0" or
+        FromPort != 22 or
+        ToPort != 22
+      }
+    }
+  }
+}
+
+# -----------------------------------------------------------------------------
+# RDS Security Policies
+# -----------------------------------------------------------------------------
+# Ensures RDS databases are securely configured with encryption,
+# proper authentication, and network isolation
+
+# Require RDS instances to have encryption enabled
+rule rds_encryption_enabled {
+  AWS::RDS::DBInstance {
+    # Storage encryption must be enabled
+    StorageEncrypted == true
+  }
+}
+
+# Prevent RDS instances from being publicly accessible
+rule rds_no_public_access {
+  AWS::RDS::DBInstance {
+    # Public accessibility must be disabled
+    PubliclyAccessible == false
+  }
+}
+
+# Require RDS instances to have automated backups enabled
+rule rds_backup_enabled {
+  AWS::RDS::DBInstance {
+    # Backup retention period must be at least 7 days
+    BackupRetentionPeriod exists
+    BackupRetentionPeriod >= 7
+  }
+}
+
+# -----------------------------------------------------------------------------
+# CloudTrail Security Policies
+# -----------------------------------------------------------------------------
+# Ensures CloudTrail is properly configured for comprehensive logging
+
+# Require CloudTrail to be enabled with proper settings
+rule cloudtrail_properly_configured {
+  AWS::CloudTrail::Trail {
+    # Multi-region trail should be enabled
+    IsMultiRegionTrail == true
+    
+    # Log file validation should be enabled
+    EnableLogFileValidation == true
+    
+    # CloudWatch Logs integration should be enabled
+    CloudWatchLogsLogGroupArn exists
+    CloudWatchLogsLogGroupArn != ""
+    
+    # Trail should be enabled
+    IsLogging == true
+  }
+}
+
+# -----------------------------------------------------------------------------
+# KMS Security Policies
+# -----------------------------------------------------------------------------
+# Ensures KMS keys are properly configured with rotation and
+# appropriate key policies
+
+# Require KMS keys to have rotation enabled
+rule kms_key_rotation_enabled {
+  AWS::KMS::Key {
+    # Key rotation must be enabled
+    EnableKeyRotation == true
+  }
+}
+
+# Prevent KMS keys from being deleted
+rule kms_key_no_deletion {
+  AWS::KMS::Key {
+    # Either PendingWindowInDays should not exist or be set to maximum (30 days)
+    PendingWindowInDays not_exists or
+    PendingWindowInDays == 30
+  }
+}
+
+# -----------------------------------------------------------------------------
+# Lambda Security Policies
+# -----------------------------------------------------------------------------
+# Ensures Lambda functions follow security best practices
+
+# Require Lambda functions to have a permissions boundary
+rule lambda_permissions_boundary {
+  AWS::Lambda::Function {
+    # Role must have a permissions boundary
+    Role exists
+    # This is a simplification - in practice, you would need to check
+    # that the referenced role has a permissions boundary
+  }
+}
+
+# Require Lambda functions to be in a VPC
+rule lambda_in_vpc {
+  AWS::Lambda::Function {
+    # VPC configuration must exist
+    VpcConfig exists
+    VpcConfig is_struct
+    VpcConfig {
+      # At least one subnet must be specified
+      SubnetIds exists
+      SubnetIds is_list
+      SubnetIds not_empty
+      
+      # At least one security group must be specified
+      SecurityGroupIds exists
+      SecurityGroupIds is_list
+      SecurityGroupIds not_empty
+    }
+  }
+}
+
+# -----------------------------------------------------------------------------
+# General Security Policies
+# -----------------------------------------------------------------------------
+# General security policies that apply to multiple resource types
+
+# Require all resources to have tags
+rule resources_must_be_tagged {
+  # Apply to common resource types
+  AWS::EC2::Instance, AWS::S3::Bucket, AWS::RDS::DBInstance, AWS::Lambda::Function {
+    # Tags must exist and include required tags
+    Tags exists
+    Tags is_list
+    Tags not_empty
+    
+    # Check for specific required tags
+    Tags[*].Key == /^(Owner|Environment|Application|CostCenter)$/
+  }
+}
+
+# Require encryption for all data at rest
+rule encrypt_data_at_rest {
+  # Apply to resources that support encryption
+  AWS::S3::Bucket, AWS::RDS::DBInstance, AWS::DynamoDB::Table {
+    # Each resource type has different encryption properties
+    # This is a simplified check - in practice, you would need
+    # resource-specific checks like those defined above
+    %encryption_property% exists
+    %encryption_property% == true
+  }
+} 

@@ -1,0 +1,496 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS Account Governance - Security Controls Implementation for Lab 1'
+
+Parameters:
+  NotificationEmail:
+    Type: String
+    Description: Email address to receive security notifications
+    
+  CloudTrailBucketName:
+    Type: String
+    Description: Name of the S3 bucket for CloudTrail logs (must be globally unique)
+    
+  ConfigBucketName:
+    Type: String
+    Description: Name of the S3 bucket for AWS Config logs (must be globally unique)
+    
+  MonthlyBudgetAmount:
+    Type: Number
+    Default: 100
+    Description: Monthly budget amount in USD
+
+Resources:
+  #########################################################
+  # IAM Password Policy
+  #########################################################
+  IAMPasswordPolicy:
+    Type: 'AWS::IAM::AccountPasswordPolicy'
+    Properties:
+      MinimumPasswordLength: 14
+      RequireSymbols: true
+      RequireNumbers: true
+      RequireUppercaseCharacters: true
+      RequireLowercaseCharacters: true
+      AllowUsersToChangePassword: true
+      MaxPasswordAge: 90
+      PasswordReusePrevention: 24
+      HardExpiry: false
+
+  #########################################################
+  # IAM Admin User
+  #########################################################
+  AdminUser:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: AdminUser
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AdministratorAccess'
+      Path: /
+      Tags:
+        - Key: Purpose
+          Value: GRC-Lab-Admin
+
+  #########################################################
+  # CloudTrail Setup
+  #########################################################
+  CloudTrailBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref CloudTrailBucketName
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  
+  CloudTrailBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref CloudTrailBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AWSCloudTrailAclCheck
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Resource: !Sub 'arn:aws:s3:::${CloudTrailBucket}'
+          - Sid: AWSCloudTrailWrite
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: 's3:PutObject'
+            Resource: !Sub 'arn:aws:s3:::${CloudTrailBucket}/AWSLogs/${AWS::AccountId}/*'
+            Condition:
+              StringEquals:
+                's3:x-amz-acl': 'bucket-owner-full-control'
+
+  CloudTrailKMSKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: KMS key for CloudTrail encryption
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: cloudtrail-key-policy
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: Allow CloudTrail to encrypt logs
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+            Action: 
+              - 'kms:GenerateDataKey*'
+              - 'kms:Decrypt'
+            Resource: '*'
+
+  CloudTrailKMSKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: alias/cloudtrail-key
+      TargetKeyId: !Ref CloudTrailKMSKey
+
+  CloudTrail:
+    Type: 'AWS::CloudTrail::Trail'
+    DependsOn: 
+      - CloudTrailBucketPolicy
+    Properties:
+      TrailName: AccountTrail
+      S3BucketName: !Ref CloudTrailBucket
+      IsLogging: true
+      IsMultiRegionTrail: true
+      EnableLogFileValidation: true
+      IncludeGlobalServiceEvents: true
+      KMSKeyId: !Ref CloudTrailKMSKey
+      EventSelectors:
+        - ReadWriteType: All
+          IncludeManagementEvents: true
+      Tags:
+        - Key: Purpose
+          Value: GRC-Lab-Logging
+
+  #########################################################
+  # AWS Config Setup
+  #########################################################
+  ConfigBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref ConfigBucketName
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ConfigBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref ConfigBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AWSConfigBucketPermissionsCheck
+            Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Resource: !Sub 'arn:aws:s3:::${ConfigBucket}'
+          - Sid: AWSConfigBucketDelivery
+            Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: 's3:PutObject'
+            Resource: !Sub 'arn:aws:s3:::${ConfigBucket}/AWSLogs/${AWS::AccountId}/Config/*'
+            Condition:
+              StringEquals:
+                's3:x-amz-acl': 'bucket-owner-full-control'
+
+  ConfigRecorderRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWS_ConfigRole'
+      Tags:
+        - Key: Purpose
+          Value: GRC-Lab-Config
+
+  ConfigRecorder:
+    Type: 'AWS::Config::ConfigurationRecorder'
+    Properties:
+      Name: GRCLabConfigRecorder
+      RecordingGroup:
+        AllSupported: true
+        IncludeGlobalResourceTypes: true
+      RoleARN: !GetAtt ConfigRecorderRole.Arn
+
+  ConfigDeliveryChannel:
+    Type: 'AWS::Config::DeliveryChannel'
+    Properties:
+      ConfigSnapshotDeliveryProperties:
+        DeliveryFrequency: Six_Hours
+      S3BucketName: !Ref ConfigBucket
+      S3KeyPrefix: Config
+
+  #########################################################
+  # Config Rules
+  #########################################################
+  ConfigRuleIAMPasswordPolicy:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: iam-password-policy
+      Description: Checks whether the account password policy for IAM users meets the specified requirements
+      Source:
+        Owner: AWS
+        SourceIdentifier: IAM_PASSWORD_POLICY
+
+  ConfigRuleRootMFA:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: root-account-mfa-enabled
+      Description: Checks whether the root user of your AWS account requires multi-factor authentication for console sign-in
+      Source:
+        Owner: AWS
+        SourceIdentifier: ROOT_ACCOUNT_MFA_ENABLED
+
+  ConfigRuleIAMUserMFA:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: mfa-enabled-for-iam-console-access
+      Description: Checks whether AWS Multi-Factor Authentication (MFA) is enabled for all AWS IAM users that use a console password
+      Source:
+        Owner: AWS
+        SourceIdentifier: MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS
+
+  ConfigRuleCloudTrailEnabled:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: cloudtrail-enabled
+      Description: Checks whether AWS CloudTrail is enabled in your AWS account
+      Source:
+        Owner: AWS
+        SourceIdentifier: CLOUD_TRAIL_ENABLED
+
+  ConfigRuleS3PublicWrite:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: s3-bucket-public-write-prohibited
+      Description: Checks that your Amazon S3 buckets do not allow public write access
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::S3::Bucket
+      Source:
+        Owner: AWS
+        SourceIdentifier: S3_BUCKET_PUBLIC_WRITE_PROHIBITED
+
+  ConfigRuleS3PublicRead:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: s3-bucket-public-read-prohibited
+      Description: Checks that your Amazon S3 buckets do not allow public read access
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::S3::Bucket
+      Source:
+        Owner: AWS
+        SourceIdentifier: S3_BUCKET_PUBLIC_READ_PROHIBITED
+
+  ConfigRuleRestrictedSSH:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: restricted-ssh
+      Description: Checks whether security groups that are in use disallow unrestricted incoming SSH traffic
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::EC2::SecurityGroup
+      Source:
+        Owner: AWS
+        SourceIdentifier: INCOMING_SSH_DISABLED
+
+  ConfigRuleRestrictedCommonPorts:
+    Type: 'AWS::Config::ConfigRule'
+    Properties:
+      ConfigRuleName: restricted-common-ports
+      Description: Checks whether security groups that are in use disallow unrestricted incoming TCP traffic to the specified ports
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::EC2::SecurityGroup
+      Source:
+        Owner: AWS
+        SourceIdentifier: RESTRICTED_INCOMING_TRAFFIC
+      InputParameters:
+        blockedPorts: '20,21,3389,3306,4333'
+
+  #########################################################
+  # IAM Access Analyzer
+  #########################################################
+  AccessAnalyzerRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: access-analyzer.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSAccessAnalyzerServiceRolePolicy'
+      Tags:
+        - Key: Purpose
+          Value: GRC-Lab-AccessAnalyzer
+
+  AccessAnalyzer:
+    Type: 'AWS::AccessAnalyzer::Analyzer'
+    Properties:
+      AnalyzerName: AccountAnalyzer
+      Type: ACCOUNT
+      Tags:
+        - Key: Purpose
+          Value: GRC-Lab-AccessAnalyzer
+
+  #########################################################
+  # SNS Topic for Alerts
+  #########################################################
+  SecurityAlertsTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      DisplayName: Security Alerts
+      TopicName: SecurityAlerts
+
+  SecurityAlertsSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      Protocol: email
+      Endpoint: !Ref NotificationEmail
+      TopicArn: !Ref SecurityAlertsTopic
+
+  #########################################################
+  # CloudWatch Alarms
+  #########################################################
+  CloudTrailChangesMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties:
+      LogGroupName: !Sub 'CloudTrail/CloudTrail'
+      FilterPattern: '{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail) || ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName = StopLogging) }'
+      MetricTransformations:
+        - MetricNamespace: CloudTrailMetrics
+          MetricName: CloudTrailChanges
+          MetricValue: '1'
+
+  CloudTrailChangesAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: CloudTrailChangesAlarm
+      AlarmDescription: Alarm when CloudTrail configuration is changed
+      MetricName: CloudTrailChanges
+      Namespace: CloudTrailMetrics
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+      InsufficientDataActions:
+        - !Ref SecurityAlertsTopic
+
+  RootLoginMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties:
+      LogGroupName: !Sub 'CloudTrail/CloudTrail'
+      FilterPattern: '{ $.userIdentity.type = "Root" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != "AwsServiceEvent" }'
+      MetricTransformations:
+        - MetricNamespace: CloudTrailMetrics
+          MetricName: RootLogin
+          MetricValue: '1'
+
+  RootLoginAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: RootLoginAlarm
+      AlarmDescription: Alarm when root user logs in
+      MetricName: RootLogin
+      Namespace: CloudTrailMetrics
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+      InsufficientDataActions:
+        - !Ref SecurityAlertsTopic
+
+  IAMPolicyChangesMetricFilter:
+    Type: 'AWS::Logs::MetricFilter'
+    Properties:
+      LogGroupName: !Sub 'CloudTrail/CloudTrail'
+      FilterPattern: '{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}'
+      MetricTransformations:
+        - MetricNamespace: CloudTrailMetrics
+          MetricName: IAMPolicyChanges
+          MetricValue: '1'
+
+  IAMPolicyChangesAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmName: IAMPolicyChangesAlarm
+      AlarmDescription: Alarm when IAM policies are changed
+      MetricName: IAMPolicyChanges
+      Namespace: CloudTrailMetrics
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref SecurityAlertsTopic
+      InsufficientDataActions:
+        - !Ref SecurityAlertsTopic
+
+  #########################################################
+  # Budget
+  #########################################################
+  MonthlyBudget:
+    Type: 'AWS::Budgets::Budget'
+    Properties:
+      Budget:
+        BudgetName: MonthlyBudget
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetAmount
+          Unit: USD
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 50
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref NotificationEmail
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref NotificationEmail
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref NotificationEmail
+
+Outputs:
+  AdminUserName:
+    Description: Name of the created IAM admin user
+    Value: !Ref AdminUser
+  
+  CloudTrailName:
+    Description: Name of the CloudTrail trail
+    Value: AccountTrail
+    
+  CloudTrailS3Bucket:
+    Description: S3 bucket storing CloudTrail logs
+    Value: !Ref CloudTrailBucket
+    
+  ConfigS3Bucket:
+    Description: S3 bucket storing AWS Config snapshots
+    Value: !Ref ConfigBucket
+    
+  SecurityAlertsTopic:
+    Description: SNS Topic ARN for security alerts
+    Value: !Ref SecurityAlertsTopic 

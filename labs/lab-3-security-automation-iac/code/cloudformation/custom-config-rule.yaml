@@ -1,0 +1,314 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Custom AWS Config rule to check if EBS volumes are encrypted'
+
+Parameters:
+  LambdaRoleName:
+    Type: String
+    Default: ConfigCustomRuleLambdaRole
+    Description: Name of the Lambda execution role for the Config rule
+    
+  ConfigRuleName:
+    Type: String
+    Default: ebs-volume-encryption-check
+    Description: Name of the custom Config rule
+
+Resources:
+  # IAM Role for the Lambda function
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref LambdaRoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ConfigEvaluationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - config:PutEvaluations
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeVolumes
+                Resource: '*'
+
+  # Lambda function for the custom Config rule
+  EBSEncryptionCheckFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ConfigRuleName}-function
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.9
+      Timeout: 30
+      MemorySize: 128
+      Environment:
+        Variables:
+          MINIMUM_ENCRYPTION_LEVEL: 'AES256'
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import botocore.exceptions
+          import os
+          from datetime import datetime
+
+          def evaluate_compliance(configuration_item, rule_parameters):
+              """Evaluates if an EBS volume is encrypted"""
+              if configuration_item['resourceType'] != 'AWS::EC2::Volume':
+                  return 'NOT_APPLICABLE'
+              
+              volume_id = configuration_item['resourceId']
+              encrypted = configuration_item['configuration'].get('encrypted', False)
+              
+              if encrypted:
+                  return 'COMPLIANT'
+              else:
+                  return 'NON_COMPLIANT'
+
+          def lambda_handler(event, context):
+              """Main Lambda handler function"""
+              invoking_event = json.loads(event['invokingEvent'])
+              configuration_item = invoking_event.get('configurationItem', {})
+              rule_parameters = json.loads(event.get('ruleParameters', '{}'))
+              
+              if 'configurationItem' not in invoking_event:
+                  return {
+                      'statusCode': 400,
+                      'body': json.dumps('No configuration item in the invoking event')
+                  }
+              
+              compliance_result = evaluate_compliance(configuration_item, rule_parameters)
+              
+              config = boto3.client('config')
+              evaluation = {
+                  'ComplianceResourceType': configuration_item['resourceType'],
+                  'ComplianceResourceId': configuration_item['resourceId'],
+                  'ComplianceType': compliance_result,
+                  'OrderingTimestamp': invoking_event['notificationCreationTime']
+              }
+              
+              # Put evaluation results
+              response = config.put_evaluations(
+                  Evaluations=[evaluation],
+                  ResultToken=event['resultToken']
+              )
+              
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps(f'Evaluation complete: {compliance_result}')
+              }
+
+  # Lambda permission for Config to invoke the function
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt EBSEncryptionCheckFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: config.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+
+  # AWS Config Rule
+  EBSEncryptionConfigRule:
+    Type: AWS::Config::ConfigRule
+    DependsOn: LambdaPermission
+    Properties:
+      ConfigRuleName: !Ref ConfigRuleName
+      Description: Checks if EBS volumes are encrypted
+      Scope:
+        ComplianceResourceTypes:
+          - AWS::EC2::Volume
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceIdentifier: !GetAtt EBSEncryptionCheckFunction.Arn
+        SourceDetails:
+          - EventSource: aws.config
+            MessageType: ConfigurationItemChangeNotification
+          - EventSource: aws.config
+            MessageType: ScheduledNotification
+            MaximumExecutionFrequency: TwentyFour_Hours
+
+  # Remediation Lambda function
+  AutoRemediationFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${ConfigRuleName}-remediation
+      Handler: index.handler
+      Role: !GetAtt RemediationLambdaRole.Arn
+      Runtime: python3.9
+      Timeout: 60
+      MemorySize: 128
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import logging
+          import time
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          def handler(event, context):
+              """Remediate non-compliant EBS volumes by enabling encryption"""
+              logger.info("Event: " + json.dumps(event))
+              
+              # Check if this is a Config Rules notification
+              if 'invokingEvent' in event:
+                  invoking_event = json.loads(event['invokingEvent'])
+                  if 'configurationItem' in invoking_event:
+                      config_item = invoking_event['configurationItem']
+                      resource_type = config_item['resourceType']
+                      resource_id = config_item['resourceId']
+                      
+                      if resource_type == 'AWS::EC2::Volume' and \
+                         config_item.get('configuration', {}).get('encrypted') == False:
+                          try:
+                              # Note: For actual remediation we would need to:
+                              # 1. Create a snapshot of the volume
+                              # 2. Create a new encrypted volume from the snapshot
+                              # 3. Detach the old volume from instances (if attached)
+                              # 4. Attach the new volume to the instances
+                              # 5. Delete the old volume when safe
+                              
+                              # This is simplified for lab purposes
+                              ec2 = boto3.client('ec2')
+                              
+                              # Log the remediation plan
+                              logger.info(f"Would remediate volume {resource_id} by creating an encrypted copy")
+                              
+                              return {
+                                  'statusCode': 200,
+                                  'body': json.dumps(f'Remediation plan created for volume {resource_id}')
+                              }
+                          except Exception as e:
+                              logger.error(f"Error in remediation: {str(e)}")
+                              return {
+                                  'statusCode': 500,
+                                  'body': json.dumps(f'Error in remediation: {str(e)}')
+                              }
+              
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps('No action taken')
+              }
+
+  # IAM Role for the Remediation Lambda function
+  RemediationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: EC2RemediationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:CreateSnapshot
+                  - ec2:CreateVolume
+                  - ec2:DescribeVolumes
+                  - ec2:DescribeSnapshots
+                  - ec2:DescribeInstances
+                  - ec2:DetachVolume
+                  - ec2:AttachVolume
+                  - ec2:DeleteVolume
+                Resource: '*'
+
+  # SNS Topic for Config rule notifications
+  ConfigNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${ConfigRuleName}-notifications
+      DisplayName: EBS Encryption Rule Notifications
+
+  # SNS Topic Policy
+  ConfigNotificationTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref ConfigNotificationTopic
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref ConfigNotificationTopic
+
+  # EventBridge Rule for Non-Compliant Resources
+  NonCompliantEBSRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ${ConfigRuleName}-event-rule
+      Description: Triggers remediation when EBS volumes are found to be non-compliant
+      EventPattern:
+        source:
+          - aws.config
+        detail-type:
+          - Config Rules Compliance Change
+        detail:
+          configRuleName:
+            - !Ref ConfigRuleName
+          newEvaluationResult:
+            complianceType:
+              - NON_COMPLIANT
+          resourceType:
+            - AWS::EC2::Volume
+      State: ENABLED
+      Targets:
+        - Arn: !Ref ConfigNotificationTopic
+          Id: NotificationTarget
+        - Arn: !GetAtt AutoRemediationFunction.Arn
+          Id: RemediationTarget
+
+  # Permission for EventBridge to invoke the remediation Lambda
+  RemediationLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt AutoRemediationFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt NonCompliantEBSRule.Arn
+
+Outputs:
+  ConfigRuleArn:
+    Description: ARN of the Config Rule
+    Value: !GetAtt EBSEncryptionConfigRule.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-ConfigRuleArn
+
+  LambdaFunctionArn:
+    Description: ARN of the Lambda function for the Config rule
+    Value: !GetAtt EBSEncryptionCheckFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-LambdaFunctionArn
+
+  RemediationFunctionArn:
+    Description: ARN of the Lambda function for remediation
+    Value: !GetAtt AutoRemediationFunction.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-RemediationFunctionArn
+
+  NotificationTopicArn:
+    Description: ARN of the SNS notification topic
+    Value: !Ref ConfigNotificationTopic
+    Export:
+      Name: !Sub ${AWS::StackName}-NotificationTopicArn 

@@ -1,0 +1,268 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Lab 8: Infrastructure and Network Protection - WAF Configuration'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: Lab8
+    Description: Environment name for resource tagging
+  RequestThreshold:
+    Type: Number
+    Default: 2000
+    Description: Maximum number of requests allowed from an IP in 5 minutes
+  BlockPeriod:
+    Type: Number
+    Default: 240
+    Description: Period (in seconds) to block an IP after exceeding threshold
+
+Resources:
+  # IPSet for Manual IP Blocking
+  BlockedIPSet:
+    Type: AWS::WAFv2::IPSet
+    Properties:
+      Name: !Sub ${Environment}-blocked-ips
+      Description: IP addresses to block
+      Scope: REGIONAL
+      IPAddressVersion: IPV4
+      Addresses: []
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  # WAF Web ACL
+  WebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub ${Environment}-web-acl
+      Description: Web ACL for protecting application resources
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub ${Environment}-WebACL
+      Rules:
+        # AWS Managed Core Rule Set
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 0
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+              ExcludedRules: []
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSetMetric
+
+        # AWS Managed Known Bad Inputs
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 1
+          OverrideAction:
+            None: {}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+              ExcludedRules: []
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesKnownBadInputsRuleSetMetric
+
+        # Rate Limiting Rule
+        - Name: RateLimitRule
+          Priority: 2
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                CustomResponseBodyKey: TooManyRequestsBody
+          Statement:
+            RateBasedStatement:
+              Limit: !Ref RequestThreshold
+              AggregateKeyType: IP
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimitRule
+
+        # SQL Injection Protection
+        - Name: SQLiProtectionRule
+          Priority: 3
+          Action:
+            Block: {}
+          Statement:
+            SqliMatchStatement:
+              FieldToMatch:
+                AllQueryArguments: {}
+              TextTransformations:
+                - Priority: 1
+                  Type: URL_DECODE
+                - Priority: 2
+                  Type: HTML_ENTITY_DECODE
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: SQLiProtectionRule
+
+        # XSS Protection
+        - Name: XSSProtectionRule
+          Priority: 4
+          Action:
+            Block: {}
+          Statement:
+            XssMatchStatement:
+              FieldToMatch:
+                Body: {}
+              TextTransformations:
+                - Priority: 1
+                  Type: HTML_ENTITY_DECODE
+                - Priority: 2
+                  Type: URL_DECODE
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: XSSProtectionRule
+
+        # Block Bad Bots
+        - Name: BadBotRule
+          Priority: 5
+          Action:
+            Block: {}
+          Statement:
+            AndStatement:
+              Statements:
+                - ByteMatchStatement:
+                    SearchString: "curl"
+                    FieldToMatch:
+                      SingleHeader:
+                        Name: user-agent
+                    TextTransformations:
+                      - Priority: 1
+                        Type: LOWERCASE
+                    PositionalConstraint: CONTAINS
+                - ByteMatchStatement:
+                    SearchString: "python-requests"
+                    FieldToMatch:
+                      SingleHeader:
+                        Name: user-agent
+                    TextTransformations:
+                      - Priority: 1
+                        Type: LOWERCASE
+                    PositionalConstraint: CONTAINS
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: BadBotRule
+
+        # Block Listed IPs
+        - Name: BlockListedIPs
+          Priority: 6
+          Action:
+            Block: {}
+          Statement:
+            IPSetReferenceStatement:
+              Arn: !GetAtt BlockedIPSet.Arn
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: BlockListedIPs
+
+      CustomResponseBodies:
+        TooManyRequestsBody:
+          ContentType: TEXT_PLAIN
+          Content: "Too many requests. Please try again later."
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  # WAF Logging Configuration
+  WAFLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/waf/${Environment}
+      RetentionInDays: 30
+
+  WAFLoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: WAFLoggingPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !GetAtt WAFLogGroup.Arn
+
+  WAFLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt WebACL.Arn
+      LogDestinationConfigs:
+        - !GetAtt WAFLogGroup.Arn
+      RedactedFields:
+        - SingleHeader:
+            Name: authorization
+        - SingleHeader:
+            Name: cookie
+
+  # CloudWatch Alarms
+  WAFBlockedRequestsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${Environment}-WAF-BlockedRequests
+      AlarmDescription: Alarm when WAF blocks too many requests
+      MetricName: BlockedRequests
+      Namespace: AWS/WAFV2
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: WebACL
+          Value: !Ref WebACL
+        - Name: Region
+          Value: !Ref AWS::Region
+      AlarmActions: []
+      OKActions: []
+
+Outputs:
+  WebACLId:
+    Description: Web ACL ID
+    Value: !GetAtt WebACL.Id
+    Export:
+      Name: !Sub ${Environment}-WebACL-ID
+
+  WebACLArn:
+    Description: Web ACL ARN
+    Value: !GetAtt WebACL.Arn
+    Export:
+      Name: !Sub ${Environment}-WebACL-ARN
+
+  BlockedIPSetId:
+    Description: Blocked IP Set ID
+    Value: !GetAtt BlockedIPSet.Id
+    Export:
+      Name: !Sub ${Environment}-BlockedIPSet-ID
+
+  WAFLogGroupName:
+    Description: WAF Log Group Name
+    Value: !Ref WAFLogGroup
+    Export:
+      Name: !Sub ${Environment}-WAF-LogGroup 

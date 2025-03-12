@@ -1,0 +1,384 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM resources for Lab 2: Identity and Access Management'
+
+Parameters:
+  AdminEmail:
+    Type: String
+    Description: Email address for the admin user (for notifications)
+    Default: admin@example.com
+  
+  MinPasswordLength:
+    Type: Number
+    Description: Minimum password length for IAM password policy
+    Default: 14
+    MinValue: 8
+    MaxValue: 128
+  
+  PasswordReusePrevention:
+    Type: Number
+    Description: Number of previous passwords that cannot be reused
+    Default: 24
+    MinValue: 1
+    MaxValue: 24
+  
+  MaxPasswordAge:
+    Type: Number
+    Description: Maximum age for passwords in days before requiring change
+    Default: 90
+    MinValue: 1
+    MaxValue: 1095
+  
+  CreateGroups:
+    Type: String
+    Description: Should the template create IAM groups?
+    Default: true
+    AllowedValues:
+      - true
+      - false
+  
+  CreateRoles:
+    Type: String
+    Description: Should the template create IAM roles?
+    Default: true
+    AllowedValues:
+      - true
+      - false
+  
+  CreatePolicies:
+    Type: String
+    Description: Should the template create IAM policies?
+    Default: true
+    AllowedValues:
+      - true
+      - false
+  
+  AllowExternalIdP:
+    Type: String
+    Description: Should the template create SAML provider for federation?
+    Default: false
+    AllowedValues:
+      - true
+      - false
+
+Conditions:
+  CreateGroupsCondition: !Equals [!Ref CreateGroups, 'true']
+  CreateRolesCondition: !Equals [!Ref CreateRoles, 'true']
+  CreatePoliciesCondition: !Equals [!Ref CreatePolicies, 'true']
+  AllowExternalIdPCondition: !Equals [!Ref AllowExternalIdP, 'true']
+
+Resources:
+  # IAM Password Policy
+  PasswordPolicy:
+    Type: AWS::IAM::AccountPasswordPolicy
+    Properties:
+      MinimumPasswordLength: !Ref MinPasswordLength
+      RequireSymbols: true
+      RequireNumbers: true
+      RequireUppercaseCharacters: true
+      RequireLowercaseCharacters: true
+      AllowUsersToChangePassword: true
+      MaxPasswordAge: !Ref MaxPasswordAge
+      PasswordReusePrevention: !Ref PasswordReusePrevention
+      HardExpiry: true
+  
+  # SNS Topic for IAM Notifications
+  IAMNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: IAM Activity Alerts
+      TopicName: IAMActivityAlerts
+  
+  IAMNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      Endpoint: !Ref AdminEmail
+      TopicArn: !Ref IAMNotificationTopic
+  
+  # IAM Groups
+  ReadOnlyGroup:
+    Type: AWS::IAM::Group
+    Condition: CreateGroupsCondition
+    Properties:
+      GroupName: ReadOnly
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Path: /
+  
+  DevelopersGroup:
+    Type: AWS::IAM::Group
+    Condition: CreateGroupsCondition
+    Properties:
+      GroupName: Developers
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+      Path: /
+  
+  DevOpsGroup:
+    Type: AWS::IAM::Group
+    Condition: CreateGroupsCondition
+    Properties:
+      GroupName: DevOps
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+      Path: /
+  
+  SecurityGroup:
+    Type: AWS::IAM::Group
+    Condition: CreateGroupsCondition
+    Properties:
+      GroupName: Security
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+      Path: /
+  
+  FinanceGroup:
+    Type: AWS::IAM::Group
+    Condition: CreateGroupsCondition
+    Properties:
+      GroupName: Finance
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/Billing
+        - arn:aws:iam::aws:policy/AWSBudgetsReadOnlyAccess
+      Path: /
+  
+  # Permission Boundary Policies
+  DevOpsBoundaryPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: CreatePoliciesCondition
+    Properties:
+      ManagedPolicyName: DevOpsPermissionBoundary
+      Description: Permission boundary for DevOps roles limiting access to specific services
+      Path: /
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:*
+              - s3:*
+              - rds:*
+              - cloudwatch:*
+              - logs:*
+            Resource: '*'
+          - Effect: Deny
+            Action:
+              - iam:*
+              - organizations:*
+              - account:*
+            Resource: '*'
+  
+  # Custom Policies
+  RestrictedS3AccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: CreatePoliciesCondition
+    Properties:
+      ManagedPolicyName: RestrictedS3Access
+      Description: Allows read-only access to the company data bucket from corporate IP range
+      Path: /
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:ListBucket
+            Resource:
+              - !Sub arn:aws:s3:::${AWS::AccountId}-company-data
+              - !Sub arn:aws:s3:::${AWS::AccountId}-company-data/*
+            Condition:
+              IpAddress:
+                aws:SourceIp: 192.0.2.0/24
+  
+  EC2MonitoringPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: CreatePoliciesCondition
+    Properties:
+      ManagedPolicyName: IT-EC2Monitoring
+      Description: Allows IT department to monitor EC2 instances
+      Path: /
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:DescribeInstances
+              - ec2:DescribeInstanceStatus
+              - ec2:DescribeInstanceTypes
+              - ec2:GetConsoleOutput
+              - ec2:GetConsoleScreenshot
+            Resource: '*'
+            Condition:
+              StringEquals:
+                aws:PrincipalTag/Department: 'IT'
+  
+  # IAM Roles
+  EC2S3ReadOnlyRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRolesCondition
+    Properties:
+      RoleName: EC2-S3ReadOnly
+      Description: Allows EC2 instances to read from S3 buckets
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      Path: /
+  
+  DevOpsRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRolesCondition
+    Properties:
+      RoleName: DevOps-Role
+      Description: Role for DevOps engineers to manage EC2, S3, and RDS resources
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+        - !If [CreatePoliciesCondition, !Ref RestrictedS3AccessPolicy, !Ref 'AWS::NoValue']
+      PermissionsBoundary: !If [CreatePoliciesCondition, !Ref DevOpsBoundaryPolicy, !Ref 'AWS::NoValue']
+      Path: /
+  
+  SecurityAuditorRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRolesCondition
+    Properties:
+      RoleName: Security-Auditor
+      Description: Role for security team members to audit AWS resources
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+      Path: /
+  
+  FinanceRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRolesCondition
+    Properties:
+      RoleName: Finance-Billing
+      Description: Role for finance team members to access billing information
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/job-function/Billing
+        - arn:aws:iam::aws:policy/AWSBudgetsReadOnlyAccess
+      Path: /
+  
+  # CloudWatch Alarm for IAM Policy Changes
+  IAMPolicyChangesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: IAMPolicyChangesAlarm
+      AlarmDescription: Alarm if IAM policy changes occur
+      MetricName: IAMPolicyEventCount
+      Namespace: CloudTrailMetrics
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref IAMNotificationTopic
+  
+  # IAM Access Analyzer
+  AccessAnalyzer:
+    Type: AWS::AccessAnalyzer::Analyzer
+    Properties:
+      AnalyzerName: AccountAccessAnalyzer
+      Type: ACCOUNT
+
+  # SAML Identity Provider (optional)
+  SAMLProvider:
+    Type: AWS::IAM::SAMLProvider
+    Condition: AllowExternalIdPCondition
+    Properties:
+      Name: ExternalSAMLProvider
+      SamlMetadataDocument: |
+        <?xml version="1.0" encoding="UTF-8"?>
+        <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="https://example.org/idp">
+          <md:IDPSSODescriptor WantAuthnRequestsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+            <md:KeyDescriptor use="signing">
+              <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                <ds:X509Data>
+                  <ds:X509Certificate>MIICYDCCAgmgAwIBAgICBoowDQYJKoZIhvcNAQEEBQAwXzELMAkGA1UEBhMCVVMxITAfBgNVBAoTGFRoZSBHbyBEYWRkeSBHcm91cCwgSW5jLjEzMDEGA1UECxMqR28gRGFkZHkgQ2xhc3MgMiBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTAeFw0wNjExMTYwMTU0MzdaFw0yNjExMTYwMTU0MzdaMIHKMQswCQYDVQQGEwJVUzEQMA4GA1UECBMHQXJpem9uYTETMBEGA1UEBxMKU2NvdHRzZGFsZTEaMBgGA1UEChMRR29EYWRkeS5jb20sIEluYy4xMzAxBgNVBAsTKmh0dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5jb20vcmVwb3NpdG9yeTEwMC4GA1UEAxMnR28gRGFkZHkgU2VjdXJlIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MREwDwYDVQQFEwgwNzk2OTI4NzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAputXmVOlZBAKBwlQxG2a09Up+/LuuR6YcvBY6qwFgJ0RsK8s/XLlL8gj+dJh1h6WXQoU+PRJYbq2bp1EB3MiVtNI9MZgTXS2P6ql5dQAwD5JDWUUPAUwFq0HL67dRtP7BnG5ZreIsz+ybXARfbW6jnAh+28mNjmPpP+YM+yUQnRQCwIDAQABMA0GCSqGSIb3DQEBBAUAA4GBAJHU0YQxvXxR1tCotlK9yItUxKgJMggEJ9bxDBCLSxYiXMdK+4X/zUzClisrBAJLkHUSD/C1SJLGc6ixmX/u/L3bhtLtEEz0OHC/J+7m5HIQMxz5r+h6SVXjJmcJ0J2VqwNFnFc8Xzc7AhoHIVKuQQCX7our2uQ+Z2ZbBI3YqZLs</ds:X509Certificate>
+                </ds:X509Data>
+              </ds:KeyInfo>
+            </md:KeyDescriptor>
+            <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
+            <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.org/sso"/>
+          </md:IDPSSODescriptor>
+        </md:EntityDescriptor>
+  
+  FederatedAccessRole:
+    Type: AWS::IAM::Role
+    Condition: AllowExternalIdPCondition
+    Properties:
+      RoleName: FederatedReadOnly
+      Description: Role for federated users with read-only access
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !If [AllowExternalIdPCondition, !Ref SAMLProvider, !Ref 'AWS::NoValue']
+            Action: sts:AssumeRoleWithSAML
+            Condition:
+              StringEquals:
+                "SAML:aud": "https://signin.aws.amazon.com/saml"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Path: /
+
+Outputs:
+  IAMNotificationTopicARN:
+    Description: ARN of the SNS topic for IAM notifications
+    Value: !Ref IAMNotificationTopic
+  
+  DevOpsBoundaryPolicyARN:
+    Description: ARN of the DevOps permission boundary policy
+    Value: !If [CreatePoliciesCondition, !Ref DevOpsBoundaryPolicy, 'Not created']
+    Condition: CreatePoliciesCondition
+  
+  DevOpsRoleARN:
+    Description: ARN of the DevOps role
+    Value: !If [CreateRolesCondition, !GetAtt DevOpsRole.Arn, 'Not created']
+    Condition: CreateRolesCondition
+  
+  SecurityAuditorRoleARN:
+    Description: ARN of the Security Auditor role
+    Value: !If [CreateRolesCondition, !GetAtt SecurityAuditorRole.Arn, 'Not created']
+    Condition: CreateRolesCondition
+  
+  AccessAnalyzerARN:
+    Description: ARN of the IAM Access Analyzer
+    Value: !GetAtt AccessAnalyzer.Arn 
