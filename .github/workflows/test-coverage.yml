@@ -95,48 +95,14 @@ jobs:
           name: lab-12-coverage
           path: labs/lab-12-cato-sechub-exporter/coverage.xml
           
-  update-coverage-badge:
-    needs: [test-lab-11, test-lab-12]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download all coverage data
-        uses: actions/download-artifact@v4
-      - name: Process coverage data
-        run: |
-          pip install coverage
-          
-          # Create a summary of coverage results
-          echo "## Coverage Summary" > coverage_summary.md
-          echo "" >> coverage_summary.md
-          echo "| Lab | Line Coverage | Branch Coverage | Status |" >> coverage_summary.md
-          echo "|-----|--------------|----------------|--------|" >> coverage_summary.md
-          
-          # Process Lab 11 coverage
-          coverage report --include=lab-11-coverage/coverage.xml --format=text > lab11_coverage.txt
-          LAB11_LINE=$(grep "TOTAL" lab11_coverage.txt | awk '{print $4}')
-          LAB11_BRANCH=$(grep "TOTAL" lab11_coverage.txt | awk '{print $6}')
-          echo "| Lab 11 | $LAB11_LINE | $LAB11_BRANCH | ✅ Passing |" >> coverage_summary.md
-          
-          # Process Lab 12 coverage
-          coverage report --include=lab-12-coverage/coverage.xml --format=text > lab12_coverage.txt
-          LAB12_LINE=$(grep "TOTAL" lab12_coverage.txt | awk '{print $4}')
-          LAB12_BRANCH=$(grep "TOTAL" lab12_coverage.txt | awk '{print $6}')
-          echo "| Lab 12 | $LAB12_LINE | $LAB12_BRANCH | ✅ Passing |" >> coverage_summary.md
-          
-          # Update README with results
-          sed -i 's/| Lab 11 | TBD | TBD | 🔄 In Progress |/| Lab 11 | '$LAB11_LINE' | '$LAB11_BRANCH' | ✅ Passing |/g' TEST_COVERAGE.md
-          sed -i 's/| Lab 12 | TBD | TBD | 🔄 In Progress |/| Lab 12 | '$LAB12_LINE' | '$LAB12_BRANCH' | ✅ Passing |/g' TEST_COVERAGE.md
-          
-      - name: Create Pull Request with updated coverage
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Update test coverage metrics from CI run"
-          title: "Update test coverage metrics"
-          body: |
-            Automated PR to update test coverage metrics in README.
-            
-            This PR was created automatically by the GitHub Actions workflow.
-          branch: update-test-coverage
-          base: main
+# Temporarily disable coverage badge update for now
+#  update-coverage-badge:
+#    needs: [test-lab-11, test-lab-12]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Download all coverage data
+#        uses: actions/download-artifact@v4
+#      - name: Process coverage data
+#        run: |
+#          echo "Coverage badge update disabled temporarily"
