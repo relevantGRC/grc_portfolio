@@ -35,30 +35,6 @@ lab-XX-name/
 
 ## Coverage Reports
 
-### Lab 10: Automated Access Review
-
-#### Test Coverage Areas
-The automated access review lab includes tests for:
-- CloudFormation template validation with cfn-lint
-- Lambda handler functionality
-- Bedrock AI integration for report generation
-- IAM permission analysis
-- Security Hub findings processing
-- Access Analyzer integration
-- CloudTrail log analysis
-- Report generation and delivery
-
-#### Current Test Status
-- **Unit Tests**: Comprehensive coverage of handler, Bedrock integration, and IAM findings
-- **CFN Tests**: Template validation passing
-- **Style Tests**: Code adheres to style guidelines
-- **Areas for Improvement**: Integration tests between components need implementation
-
-To run tests with coverage:
-```bash
-cd labs/lab-10-automated-access-review
-python -m pytest --cov=code --cov-report=term-missing
-```
 
 ### Lab 11: Security Hub Analyzer
 
@@ -181,9 +157,8 @@ To integrate test coverage into CI/CD:
 
 | Lab | Line Coverage | Branch Coverage | Status |
 |-----|--------------|----------------|--------|
-| Lab 10 | 85% | 78% | ✅ Passing |
-| Lab 11 | 82% | 75% | ✅ Passing |
-| Lab 12 | 80% | 72% | ✅ Passing |
+| Lab 11 | 2% | 0% | ✅ Passing |
+| Lab 12 | 0% | 0% | ✅ Passing |
 
 To update this table with actual coverage metrics, run the coverage report for each lab:
 

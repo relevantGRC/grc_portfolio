@@ -21,23 +21,24 @@ My mission is to create the industry's premier open-source resource for GRC prof
 
 ## About the Author
 
-I'm AJ Yawn, a cybersecurity professional with nearly 15 years of experience specializing in GRC Engineering and compliance automation. My journey includes:
+I'm [AJ Yawn](https://www.linkedin.com/in/ajyawn/), a cybersecurity professional with nearly 15 years of experience specializing in GRC Engineering and compliance automation. My journey includes:
 
 - **Military Leadership**: Served as a U.S. Army Officer in the Signal Corps, achieving the rank of Captain
 - **Consulting Excellence**: At Coalfire, helped grow the compliance practice from 9 to 100+ people, advancing from junior auditor to principal consultant
-- **Entrepreneurial Success**: Founded ByteChek, a compliance automation startup that achieved $1M+ ARR, focusing on SOC 2 and HIPAA automation
-- **Corporate Innovation**: Served as a Partner at Armanino (Top 20 CPA firm), leading product and innovation initiatives
+- **Entrepreneurial Success**: Founded ByteChek, a compliance automation startup that achieved $1M+ Annual Recurring Revenue, focusing on SOC 2 and HIPAA automation
+- **Corporate Innovation**: Served as a Partner at Armanino (Top 20 CPA firm), leading product and innovation initiatives including a audit automation tool. 
+- **LinkedIn Learning and SANS Instrucutor**: Teach courses on cloud compliance and automation at the SANS Institute and have educated over 100K learners on LinkedIn Learning including GRC courses. 
 - **Current Role**: Director of Engineering at Aquia
 
 Throughout my career, I've been driven by the mission to make compliance more efficient and accessible through automation and engineering principles. This portfolio hub represents a culmination of my experiences and lessons learned in GRC Engineering.
 
 ## What's Inside
 
-- **📝 Portfolio Templates**: Professional templates for creating your GRC portfolio, optimized for GitHub and ready to showcase your skills to potential employers
-- **🔬 Hands-on Labs**: Comprehensive, step-by-step labs covering core AWS security domains
-- **⚙️ Full Code Implementations**: Complete CloudFormation and Terraform templates for all labs
-- **🧪 Advanced Challenges**: Stretch goals and real-world scenarios to demonstrate advanced skills
-- **📚 Learning Resources**: Curated references, comparison charts, and learning paths
+- **Portfolio Templates**: Professional templates for creating your GRC portfolio, optimized for GitHub and ready to showcase your skills to potential employers
+- **Hands-on Labs**: Comprehensive, step-by-step labs covering core AWS security domains
+- **Full Code Implementations**: Complete CloudFormation templates for all labs
+- **Advanced Challenges**: Stretch goals and real-world scenarios to demonstrate advanced skills
+- **Learning Resources**: Curated references, comparison charts, and learning paths
 
 ## Repository Structure
 
@@ -69,9 +70,8 @@ Our labs cover the following AWS security domains:
 7. **Risk Assessment and Threat Modeling**
 8. **Infrastructure and Network Protection**
 9. **Incident Response and Recovery**
-10. **Automated Access Review Implementation**: Automated IAM security assessment and reporting
-11. **Security Hub Compliance Analysis**: Multi-framework compliance monitoring with SOC 2 and NIST mapping
-12. **cATO Security Hub Integration**: Continuous ATO monitoring and compliance data export
+10. **Security Hub Compliance Analysis**: Multi-framework compliance monitoring with SOC 2 and NIST mapping (Lab 11)
+11. **cATO Security Hub Integration**: Continuous ATO monitoring and compliance data export (Lab 12)
 
 Each lab includes:
 - Clear learning objectives mapped to AWS Well-Architected Framework
