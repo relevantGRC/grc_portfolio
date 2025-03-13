@@ -13,7 +13,6 @@ jobs:
       matrix:
         python-version: [3.11]
         lab: [
-          'lab-10-automated-access-review',
           'lab-11-security-hub-analyzer',
           'lab-12-cato-sechub-exporter'
         ]

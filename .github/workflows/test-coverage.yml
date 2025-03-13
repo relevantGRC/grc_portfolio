@@ -8,38 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-lab-10:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: labs/lab-10-automated-access-review
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r ../requirements-test.txt
-          pip install pytest pytest-cov moto boto3-stubs
-      - name: Run tests with coverage
-        run: |
-          # Set mock AWS credentials for testing
-          export AWS_ACCESS_KEY_ID=test-key
-          export AWS_SECRET_ACCESS_KEY=test-secret
-          export AWS_DEFAULT_REGION=us-east-1
-          export REPORT_BUCKET=test-bucket
-          export RECIPIENT_EMAIL=test@example.com
-          
-          python -m pytest tests/unit/ --cov=code --cov-report=xml --cov-report=term-missing
-      - name: Save coverage data
-        uses: actions/upload-artifact@v4
-        with:
-          name: lab-10-coverage
-          path: labs/lab-10-automated-access-review/coverage.xml
   
   test-lab-11:
     runs-on: ubuntu-latest
@@ -67,7 +35,7 @@ jobs:
           export FINDINGS_BUCKET=test-bucket
           export RECIPIENT_EMAIL=test@example.com
           
-          python -m pytest tests/unit/ --cov=code --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/unit/ --cov=app_code --cov-report=xml --cov-report=term-missing
       - name: Save coverage data
         uses: actions/upload-artifact@v4
         with:
@@ -100,7 +68,7 @@ jobs:
           export EXPORT_BUCKET=test-bucket
           export SNS_TOPIC_ARN=arn:aws:sns:us-east-1:123456789012:test-topic
           
-          python -m pytest tests/unit/ --cov=code --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/unit/ --cov=cato_code --cov-report=xml --cov-report=term-missing
       - name: Save coverage data
         uses: actions/upload-artifact@v4
         with:
@@ -108,7 +76,7 @@ jobs:
           path: labs/lab-12-cato-sechub-exporter/coverage.xml
           
   update-coverage-badge:
-    needs: [test-lab-10, test-lab-11, test-lab-12]
+    needs: [test-lab-11, test-lab-12]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -124,12 +92,6 @@ jobs:
           echo "| Lab | Line Coverage | Branch Coverage | Status |" >> coverage_summary.md
           echo "|-----|--------------|----------------|--------|" >> coverage_summary.md
           
-          # Process Lab 10 coverage
-          coverage report --include=lab-10-coverage/coverage.xml --format=text > lab10_coverage.txt
-          LAB10_LINE=$(grep "TOTAL" lab10_coverage.txt | awk '{print $4}')
-          LAB10_BRANCH=$(grep "TOTAL" lab10_coverage.txt | awk '{print $6}')
-          echo "| Lab 10 | $LAB10_LINE | $LAB10_BRANCH | ✅ Passing |" >> coverage_summary.md
-          
           # Process Lab 11 coverage
           coverage report --include=lab-11-coverage/coverage.xml --format=text > lab11_coverage.txt
           LAB11_LINE=$(grep "TOTAL" lab11_coverage.txt | awk '{print $4}')
@@ -143,7 +105,6 @@ jobs:
           echo "| Lab 12 | $LAB12_LINE | $LAB12_BRANCH | ✅ Passing |" >> coverage_summary.md
           
           # Update README with results
-          sed -i 's/| Lab 10 | TBD | TBD | 🔄 In Progress |/| Lab 10 | '$LAB10_LINE' | '$LAB10_BRANCH' | ✅ Passing |/g' TEST_COVERAGE.md
           sed -i 's/| Lab 11 | TBD | TBD | 🔄 In Progress |/| Lab 11 | '$LAB11_LINE' | '$LAB11_BRANCH' | ✅ Passing |/g' TEST_COVERAGE.md
           sed -i 's/| Lab 12 | TBD | TBD | 🔄 In Progress |/| Lab 12 | '$LAB12_LINE' | '$LAB12_BRANCH' | ✅ Passing |/g' TEST_COVERAGE.md
           

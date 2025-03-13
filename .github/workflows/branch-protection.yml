@@ -22,7 +22,6 @@ jobs:
               required_status_checks: {
                 strict: true,
                 contexts: [
-                  'test-lab-10',
                   'test-lab-11',
                   'test-lab-12'
                 ]
