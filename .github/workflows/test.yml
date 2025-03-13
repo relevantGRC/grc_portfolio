@@ -28,6 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install pytest pytest-cov moto boto3-stubs
         cd labs/${{ matrix.lab }}
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
