@@ -408,7 +408,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Federated: !If [AllowExternalIdPCondition, !Ref SAMLProvider, !Ref 'AWS::NoValue']
+              Federated: !Ref SAMLProvider
             Action: sts:AssumeRoleWithSAML
             Condition:
               StringEquals:
@@ -424,17 +424,17 @@ Outputs:
   
   DevOpsBoundaryPolicyARN:
     Description: ARN of the DevOps permission boundary policy
-    Value: !If [CreatePoliciesCondition, !Ref DevOpsBoundaryPolicy, 'Not created']
+    Value: !Ref DevOpsBoundaryPolicy
     Condition: CreatePoliciesCondition
   
   DevOpsRoleARN:
     Description: ARN of the DevOps role
-    Value: !If [CreateRolesCondition, !GetAtt DevOpsRole.Arn, 'Not created']
+    Value: !GetAtt DevOpsRole.Arn
     Condition: CreateRolesCondition
   
   SecurityAuditorRoleARN:
     Description: ARN of the Security Auditor role
-    Value: !If [CreateRolesCondition, !GetAtt SecurityAuditorRole.Arn, 'Not created']
+    Value: !GetAtt SecurityAuditorRole.Arn
     Condition: CreateRolesCondition
   
   AccessAnalyzerARN:

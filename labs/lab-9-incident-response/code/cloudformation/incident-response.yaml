@@ -154,8 +154,6 @@ Resources:
   # Add role policy after creating role to avoid circular dependency
   ForensicsRolePolicy:
     Type: AWS::IAM::Policy
-    DependsOn: 
-      - ForensicsBucket
     Properties:
       PolicyName: ForensicsAccess
       Roles:
