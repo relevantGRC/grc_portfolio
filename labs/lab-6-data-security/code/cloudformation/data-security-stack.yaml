@@ -22,25 +22,26 @@ Parameters:
     Description: Name for the RDS database
     Default: securitylab
   
-  # Database username for the RDS instance
-  DatabaseUsername:
-    Type: String
-    Description: Username for the RDS database
-    Default: dbadmin
-    MinLength: 1
-    MaxLength: 16
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: Must begin with a letter and contain only alphanumeric characters
+  # Parameter removed - using Secrets Manager instead
+  # # Database username for the RDS instance
+  # DatabaseUsername:
+  #   Type: String
+  #   Description: Username for the RDS database
+  #   Default: dbadmin
+  #   MinLength: 1
+  #   MaxLength: 16
+  #   AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+  #   ConstraintDescription: Must begin with a letter and contain only alphanumeric characters
   
-  # Database password for the RDS instance
-  DatabasePassword:
-    Type: String
-    Description: Password for the RDS database
-    NoEcho: true
-    MinLength: 8
-    MaxLength: 41
-    AllowedPattern: '[a-zA-Z0-9]*'
-    ConstraintDescription: Must contain only alphanumeric characters
+  # # Database password for the RDS instance
+  # DatabasePassword:
+  #   Type: String
+  #   Description: Password for the RDS database
+  #   NoEcho: true
+  #   MinLength: 8
+  #   MaxLength: 41
+  #   AllowedPattern: '[a-zA-Z0-9]*'
+  #   ConstraintDescription: Must contain only alphanumeric characters
 
 Resources:
   # KMS key for S3 encryption
@@ -217,7 +218,9 @@ Resources:
   LoggingBucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: LogDeliveryWrite
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -455,14 +458,14 @@ Resources:
     Properties:
       DBName: !Ref DatabaseName
       Engine: mysql
-      EngineVersion: 8.0.28
+      EngineVersion: 8.0.35
       DBInstanceClass: db.t3.micro
       AllocatedStorage: 20
       StorageType: gp2
       StorageEncrypted: true
       KmsKeyId: !Ref RDSEncryptionKey
-      MasterUsername: !Ref DatabaseUsername
-      MasterUserPassword: !Ref DatabasePassword
+      MasterUsername: '{{resolve:secretsmanager:DataSecurityDBCredentials:SecretString:username}}'
+      MasterUserPassword: '{{resolve:secretsmanager:DataSecurityDBCredentials:SecretString:password}}'
       DBSubnetGroupName: !Ref RDSSubnetGroup
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup

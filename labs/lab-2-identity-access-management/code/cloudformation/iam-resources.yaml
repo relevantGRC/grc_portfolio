@@ -67,19 +67,77 @@ Conditions:
   AllowExternalIdPCondition: !Equals [!Ref AllowExternalIdP, 'true']
 
 Resources:
-  # IAM Password Policy
-  PasswordPolicy:
-    Type: AWS::IAM::AccountPasswordPolicy
+  # IAM Password Policy - Using Custom Resource
+  IAMPasswordPolicyLambdaRole:
+    Type: 'AWS::IAM::Role'
     Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: IAMPasswordPolicyPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'iam:UpdateAccountPasswordPolicy'
+                  - 'iam:GetAccountPasswordPolicy'
+                Resource: '*'
+
+  PasswordPolicyFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt IAMPasswordPolicyLambdaRole.Arn
+      Runtime: python3.12
+      Timeout: 30
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+
+          def handler(event, context):
+            iam = boto3.client('iam')
+            responseData = {}
+            
+            try:
+              if event['RequestType'] in ['Create', 'Update']:
+                min_length = event['ResourceProperties'].get('MinimumPasswordLength', 14)
+                max_age = event['ResourceProperties'].get('MaxPasswordAge', 90)
+                reuse_prevention = event['ResourceProperties'].get('PasswordReusePrevention', 24)
+                
+                iam.update_account_password_policy(
+                  MinimumPasswordLength=int(min_length),
+                  RequireSymbols=True,
+                  RequireNumbers=True,
+                  RequireUppercaseCharacters=True,
+                  RequireLowercaseCharacters=True,
+                  AllowUsersToChangePassword=True,
+                  MaxPasswordAge=int(max_age),
+                  PasswordReusePrevention=int(reuse_prevention),
+                  HardExpiry=True
+                )
+                responseData['Message'] = 'Password policy updated successfully'
+              
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+            except Exception as e:
+              responseData['Error'] = str(e)
+              cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+
+  PasswordPolicy:
+    Type: 'Custom::PasswordPolicy'
+    Properties:
+      ServiceToken: !GetAtt PasswordPolicyFunction.Arn
       MinimumPasswordLength: !Ref MinPasswordLength
-      RequireSymbols: true
-      RequireNumbers: true
-      RequireUppercaseCharacters: true
-      RequireLowercaseCharacters: true
-      AllowUsersToChangePassword: true
       MaxPasswordAge: !Ref MaxPasswordAge
       PasswordReusePrevention: !Ref PasswordReusePrevention
-      HardExpiry: true
   
   # SNS Topic for IAM Notifications
   IAMNotificationTopic:

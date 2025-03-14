@@ -81,8 +81,6 @@ Resources:
       Enable: true
       FindingPublishingFrequency: FIFTEEN_MINUTES
       DataSources:
-        FlowLogs:
-          Enable: true
         S3Logs:
           Enable: true
 

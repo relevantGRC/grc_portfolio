@@ -10,10 +10,11 @@ Parameters:
     Type: Number
     Default: 2000
     Description: Maximum number of requests allowed from an IP in 5 minutes
-  BlockPeriod:
-    Type: Number
-    Default: 240
-    Description: Period (in seconds) to block an IP after exceeding threshold
+  # Parameter removed as it's not used
+  # BlockPeriod:
+  #   Type: Number
+  #   Default: 240
+  #   Description: Period (in seconds) to block an IP after exceeding threshold
 
 Resources:
   # IPSet for Manual IP Blocking

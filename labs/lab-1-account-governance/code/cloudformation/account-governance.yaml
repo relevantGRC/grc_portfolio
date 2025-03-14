@@ -21,20 +21,71 @@ Parameters:
 
 Resources:
   #########################################################
-  # IAM Password Policy
+  # IAM Password Policy - Using Custom Resource
   #########################################################
-  IAMPasswordPolicy:
-    Type: 'AWS::IAM::AccountPasswordPolicy'
+  IAMPasswordPolicyLambdaRole:
+    Type: 'AWS::IAM::Role'
     Properties:
-      MinimumPasswordLength: 14
-      RequireSymbols: true
-      RequireNumbers: true
-      RequireUppercaseCharacters: true
-      RequireLowercaseCharacters: true
-      AllowUsersToChangePassword: true
-      MaxPasswordAge: 90
-      PasswordReusePrevention: 24
-      HardExpiry: false
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: IAMPasswordPolicyPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'iam:UpdateAccountPasswordPolicy'
+                  - 'iam:GetAccountPasswordPolicy'
+                Resource: '*'
+
+  PasswordPolicyFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt IAMPasswordPolicyLambdaRole.Arn
+      Runtime: python3.12
+      Timeout: 30
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+
+          def handler(event, context):
+            iam = boto3.client('iam')
+            responseData = {}
+            
+            try:
+              if event['RequestType'] in ['Create', 'Update']:
+                iam.update_account_password_policy(
+                  MinimumPasswordLength=14,
+                  RequireSymbols=True,
+                  RequireNumbers=True,
+                  RequireUppercaseCharacters=True,
+                  RequireLowercaseCharacters=True,
+                  AllowUsersToChangePassword=True,
+                  MaxPasswordAge=90,
+                  PasswordReusePrevention=24,
+                  HardExpiry=False
+                )
+                responseData['Message'] = 'Password policy updated successfully'
+              
+              cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+            except Exception as e:
+              responseData['Error'] = str(e)
+              cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+
+  IAMPasswordPolicy:
+    Type: 'Custom::PasswordPolicy'
+    Properties:
+      ServiceToken: !GetAtt PasswordPolicyFunction.Arn
 
   #########################################################
   # IAM Admin User
@@ -56,6 +107,7 @@ Resources:
   CloudTrailBucket:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: !Ref CloudTrailBucketName
       VersioningConfiguration:
@@ -82,13 +134,13 @@ Resources:
             Principal:
               Service: cloudtrail.amazonaws.com
             Action: 's3:GetBucketAcl'
-            Resource: !Sub 'arn:aws:s3:::${CloudTrailBucket}'
+            Resource: !Sub arn:aws:s3:::${CloudTrailBucketName}
           - Sid: AWSCloudTrailWrite
             Effect: Allow
             Principal:
               Service: cloudtrail.amazonaws.com
             Action: 's3:PutObject'
-            Resource: !Sub 'arn:aws:s3:::${CloudTrailBucket}/AWSLogs/${AWS::AccountId}/*'
+            Resource: !Sub arn:aws:s3:::${CloudTrailBucketName}/AWSLogs/${AWS::AccountId}/*
             Condition:
               StringEquals:
                 's3:x-amz-acl': 'bucket-owner-full-control'
@@ -148,6 +200,7 @@ Resources:
   ConfigBucket:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: !Ref ConfigBucketName
       VersioningConfiguration:
@@ -357,7 +410,7 @@ Resources:
   CloudTrailChangesMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
     Properties:
-      LogGroupName: !Sub 'CloudTrail/CloudTrail'
+      LogGroupName: 'CloudTrail/CloudTrail'
       FilterPattern: '{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail) || ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName = StopLogging) }'
       MetricTransformations:
         - MetricNamespace: CloudTrailMetrics
@@ -384,7 +437,7 @@ Resources:
   RootLoginMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
     Properties:
-      LogGroupName: !Sub 'CloudTrail/CloudTrail'
+      LogGroupName: 'CloudTrail/CloudTrail'
       FilterPattern: '{ $.userIdentity.type = "Root" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != "AwsServiceEvent" }'
       MetricTransformations:
         - MetricNamespace: CloudTrailMetrics
@@ -411,7 +464,7 @@ Resources:
   IAMPolicyChangesMetricFilter:
     Type: 'AWS::Logs::MetricFilter'
     Properties:
-      LogGroupName: !Sub 'CloudTrail/CloudTrail'
+      LogGroupName: 'CloudTrail/CloudTrail'
       FilterPattern: '{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}'
       MetricTransformations:
         - MetricNamespace: CloudTrailMetrics

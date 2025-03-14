@@ -72,6 +72,7 @@ Resources:
   ForensicsBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: !Ref ForensicsBucketName
       VersioningConfiguration:
@@ -96,6 +97,7 @@ Resources:
   ForensicsLogsBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       VersioningConfiguration:
         Status: Enabled
@@ -123,17 +125,7 @@ Resources:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Action: kms:*
             Resource: '*'
-          - Sid: Allow Forensics Role
-            Effect: Allow
-            Principal:
-              AWS: !GetAtt ForensicsRole.Arn
-            Action:
-              - kms:Encrypt
-              - kms:Decrypt
-              - kms:ReEncrypt*
-              - kms:GenerateDataKey*
-              - kms:DescribeKey
-            Resource: '*'
+          # Removed the Forensics Role reference to break circular dependency
 
   ForensicsKMSAlias:
     Type: AWS::KMS::Alias
@@ -157,30 +149,47 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: ForensicsAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                  - s3:GetObject
-                  - s3:ListBucket
-                Resource:
-                  - !Sub ${ForensicsBucket.Arn}
-                  - !Sub ${ForensicsBucket.Arn}/*
-              - Effect: Allow
-                Action:
-                  - ec2:CreateSnapshot
-                  - ec2:DescribeSnapshots
-                  - ec2:DescribeInstances
-                  - ec2:DescribeVolumes
-                Resource: '*'
 
   # Lambda Functions
+  # Add role policy after creating role to avoid circular dependency
+  ForensicsRolePolicy:
+    Type: AWS::IAM::Policy
+    DependsOn: 
+      - ForensicsBucket
+    Properties:
+      PolicyName: ForensicsAccess
+      Roles:
+        - !Ref ForensicsRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:ListBucket
+            Resource:
+              - !Sub ${ForensicsBucket.Arn}
+              - !Sub ${ForensicsBucket.Arn}/*
+          - Effect: Allow
+            Action:
+              - ec2:CreateSnapshot
+              - ec2:DescribeSnapshots
+              - ec2:DescribeInstances
+              - ec2:DescribeVolumes
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: !GetAtt ForensicsKMSKey.Arn
+
   IncidentAnalysisFunction:
     Type: AWS::Lambda::Function
+    DependsOn: ForensicsRolePolicy
     Properties:
       FunctionName: !Sub ${Environment}-incident-analysis
       Handler: index.handler
