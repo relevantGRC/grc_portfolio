@@ -291,7 +291,7 @@ def remediate_ebs_volume(volume_id):
 
         # Copy tags from original volume to new volume to maintain metadata
         if "Tags" in volume:
-            logger.info(f"Copying tags from original volume to new volume")
+            logger.info("Copying tags from original volume to new volume")
             ec2_client.create_tags(Resources=[new_volume_id], Tags=volume["Tags"])
 
         return {
@@ -328,7 +328,7 @@ def remediate_s3_bucket(bucket_name):
         # Check if bucket exists and is accessible
         try:
             s3_client.head_bucket(Bucket=bucket_name)
-        except ClientError as e:
+        except ClientError:
             return {
                 "status": "FAILED",
                 "message": f"Bucket {bucket_name} does not exist or you don't have permission to access it",
@@ -336,7 +336,7 @@ def remediate_s3_bucket(bucket_name):
 
         # Check current encryption configuration
         try:
-            encryption = s3_client.get_bucket_encryption(Bucket=bucket_name)
+            _ = s3_client.get_bucket_encryption(Bucket=bucket_name)
             # Bucket already has encryption - no action needed
             return {
                 "status": "SUCCESS",

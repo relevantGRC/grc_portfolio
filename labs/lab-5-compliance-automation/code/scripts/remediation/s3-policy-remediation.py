@@ -188,7 +188,7 @@ def remediate_bucket(bucket_name):
                     else:
                         # If no statements left, delete the policy entirely
                         logger.info(
-                            f"Deleting bucket policy as all statements were public"
+                            "Deleting bucket policy as all statements were public"
                         )
                         s3_client.delete_bucket_policy(Bucket=bucket_name)
 

@@ -11,7 +11,6 @@ import boto3
 import json
 import logging
 import sys
-import time
 from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor
 import requests

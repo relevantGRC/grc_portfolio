@@ -6,8 +6,6 @@ the rule parameters. It supports checking for both tag keys and specific key-val
 """
 
 import json
-import boto3
-import botocore.exceptions
 
 
 # Helper Functions
