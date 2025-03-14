@@ -5,11 +5,12 @@ This function automatically remediates S3 bucket policy violations by removing p
 It can be triggered by AWS Config remediation or directly from EventBridge rules.
 """
 
+import datetime
 import json
-import boto3
 import logging
 import os
-import datetime
+
+import boto3
 
 # Configure logging
 logger = logging.getLogger()

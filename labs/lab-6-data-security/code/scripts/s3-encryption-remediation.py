@@ -5,10 +5,11 @@ This function automatically remediates S3 objects that are not properly encrypte
 It can be triggered by EventBridge rules when objects are uploaded without encryption.
 """
 
-import boto3
 import json
-import os
 import logging
+import os
+
+import boto3
 from botocore.exceptions import ClientError
 
 # Configure logging

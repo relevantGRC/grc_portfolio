@@ -12,11 +12,12 @@ The function performs the following actions:
 5. Creates a detailed incident report
 """
 
-import json
-import boto3
-import os
-import logging
 import datetime
+import json
+import logging
+import os
+
+import boto3
 
 # Configure logging
 logger = logging.getLogger()

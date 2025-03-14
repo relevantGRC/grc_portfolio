@@ -7,13 +7,14 @@ of security controls in the AWS infrastructure. It tests VPC security groups,
 NACLs, WAF rules, and network connectivity.
 """
 
-import boto3
 import json
 import logging
 import sys
-from botocore.exceptions import ClientError
 from concurrent.futures import ThreadPoolExecutor
+
+import boto3
 import requests
+from botocore.exceptions import ClientError
 
 # Configure logging
 logging.basicConfig(

@@ -19,11 +19,12 @@ For each resource type, the function:
 4. Sends a notification (if configured)
 """
 
+import datetime
 import json
-import boto3
 import logging
 import os
-import datetime
+
+import boto3
 from botocore.exceptions import ClientError
 
 # Configure logging
