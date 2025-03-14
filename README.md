@@ -2,6 +2,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-In%20Development-yellow" alt="Status: In Development">
+  [![Test Suite](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml/badge.svg)](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml)
   <img src="https://img.shields.io/badge/AWS-Security-orange" alt="AWS Security">
   <img src="https://img.shields.io/badge/Focus-GRC-blue" alt="Focus: GRC">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT">
@@ -28,7 +29,7 @@ I'm [AJ Yawn](https://www.linkedin.com/in/ajyawn/), a cybersecurity professional
 - **Entrepreneurial Success**: Founded ByteChek, a compliance automation startup that achieved $1M+ Annual Recurring Revenue, focusing on SOC 2 and HIPAA automation
 - **Corporate Innovation**: Served as a Partner at Armanino (Top 20 CPA firm), leading product and innovation initiatives including a audit automation tool. 
 - **LinkedIn Learning and SANS Instrucutor**: Teach courses on cloud compliance and automation at the SANS Institute and have educated over 100K learners on LinkedIn Learning including GRC courses. 
-- **Current Role**: Director of Engineering at Aquia
+- **Current Role**: Director of GRC Engineering at Aquia
 
 Throughout my career, I've been driven by the mission to make compliance more efficient and accessible through automation and engineering principles. This portfolio hub represents a culmination of my experiences and lessons learned in GRC Engineering.
 

@@ -39,7 +39,7 @@ jobs:
           fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=code --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
           
       - name: Run coverage for lab-5 
         if: always()
@@ -51,7 +51,7 @@ jobs:
           fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=code --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
           
       - name: Run coverage for lab-6
         if: always()
@@ -63,7 +63,7 @@ jobs:
           fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=code --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
           
       - name: Run coverage for lab-8
         if: always()
@@ -75,7 +75,7 @@ jobs:
           fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=code --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
       
       - name: Generate combined coverage report
         run: |
