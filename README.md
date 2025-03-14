@@ -1,8 +1,10 @@
 # GRC Portfolio Hub
 
+  [![Test Suite](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml/badge.svg)](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml)
+
+
 <p align="center">
   <img src="https://img.shields.io/badge/Status-In%20Development-yellow" alt="Status: In Development">
-  [![Test Suite](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml/badge.svg)](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml)
   <img src="https://img.shields.io/badge/AWS-Security-orange" alt="AWS Security">
   <img src="https://img.shields.io/badge/Focus-GRC-blue" alt="Focus: GRC">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT">
