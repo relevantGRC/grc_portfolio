@@ -1,4 +1,4 @@
-# Test Coverage Report
+# Test Coverage for Labs
 
 ## Why Test Coverage is Important
 
@@ -13,7 +13,7 @@ Test coverage is a critical metric in software development that measures how muc
 
 ## Coverage Requirements
 
-Each lab in this project must maintain at least 80% test coverage. This requirement ensures:
+Labs with Python code should maintain at least 80% test coverage. This requirement ensures:
 
 - Critical functionality is thoroughly tested
 - Security controls are properly validated
@@ -31,58 +31,6 @@ lab-XX-name/
       ├── integration/      # End-to-end and component integration tests
       ├── unit/             # Unit tests for individual modules and functions
       └── style/            # Code style and formatting tests
-```
-
-## Coverage Reports
-
-
-### Lab 11: Security Hub Analyzer
-
-#### Test Coverage Areas
-The Security Hub analyzer lab includes tests for:
-- CloudFormation template validation
-- Lambda function implementation
-- Security Hub findings collection
-- NIST control mapping
-- SOC2 control mapping
-- Framework mapper functionality
-- Report generation and formatting
-- Notification delivery
-
-#### Current Test Status
-- **Unit Tests**: Good coverage of mapping functions and Lambda handlers
-- **Framework Tests**: Tests for NIST and SOC2 mappers
-- **CFN Tests**: Template validation passing
-- **Areas for Improvement**: Need tests for error conditions and edge cases
-
-To run tests with coverage:
-```bash
-cd labs/lab-11-security-hub-analyzer
-python -m pytest --cov=code --cov-report=term-missing
-```
-
-### Lab 12: CATO SecHub Exporter
-
-#### Test Coverage Areas
-The CATO SecHub exporter lab includes tests for:
-- CloudFormation template validation
-- Configuration loading and validation
-- Lambda function implementation
-- Security Hub findings export
-- Data transformation and formatting
-- CSV generation
-- S3 bucket operations
-- SNS notifications
-
-#### Current Test Status
-- **Unit Tests**: Configuration handling and CSV formatting well-tested
-- **CFN Tests**: Template validation passing
-- **Areas for Improvement**: Need S3 integration tests and error handling tests
-
-To run tests with coverage:
-```bash
-cd labs/lab-12-cato-sechub-exporter
-python -m pytest --cov=code --cov-report=term-missing
 ```
 
 ## Test Enhancement Plan
@@ -151,21 +99,4 @@ To integrate test coverage into CI/CD:
    ```
 
 2. Add coverage badges to README.md
-3. Set up branch protection rules requiring passing tests
-
-## Current Coverage Status
-
-| Lab | Line Coverage | Branch Coverage | Status |
-|-----|--------------|----------------|--------|
-| Lab 11 | 2% | 0% | ✅ Passing |
-| Lab 12 | 0% | 0% | ✅ Passing |
-
-To update this table with actual coverage metrics, run the coverage report for each lab:
-
-```bash
-# For each lab
-cd labs/lab-XX-name
-python -m pytest --cov=code --cov-report=term
-```
-
-*Note: Coverage percentages will be updated automatically by CI/CD pipeline once implemented.* 
+3. Set up branch protection rules requiring passing tests 

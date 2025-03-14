@@ -50,7 +50,6 @@ Most services used in this lab are either included in the AWS Free Tier or can b
 
 This lab implements a comprehensive security monitoring and incident response architecture in AWS:
 
-![Security Monitoring Architecture](architecture-diagram.md)
 
 The architecture includes:
 - Centralized logging with CloudTrail and CloudWatch

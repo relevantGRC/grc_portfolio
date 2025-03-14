@@ -49,7 +49,6 @@ Before starting this lab, you should have:
 
 ## Architecture Overview
 
-![Security Automation with IaC Architecture](architecture-diagram.png)
 
 This lab implements a comprehensive security automation architecture including:
 

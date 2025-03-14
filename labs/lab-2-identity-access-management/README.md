@@ -46,7 +46,6 @@ Before starting this lab, you should have:
 
 ## Architecture Overview
 
-![Identity and Access Management Architecture](architecture-diagram.png)
 
 This lab implements a comprehensive identity and access management architecture including:
 

@@ -49,9 +49,19 @@ GRC_Portfolio/
 ├── LICENSE - Project license
 ├── portfolio-templates/ - Templates and examples for your GRC portfolio
 ├── labs/ - Hands-on AWS security labs with full code and documentation
+│   ├── lab-1-account-governance/ - AWS account security foundations
+│   ├── lab-2-identity-access-management/ - IAM implementation
+│   ├── lab-3-security-automation-iac/ - Security automation with IaC
+│   ├── lab-4-security-monitoring-incident-response/ - Security monitoring
+│   ├── lab-5-compliance-automation/ - Compliance automation
+│   ├── lab-6-data-security/ - Data security controls
+│   ├── lab-7-risk-threat-modeling/ - Risk assessment strategies
+│   ├── lab-8-infrastructure-protection/ - Network and infrastructure security
+│   ├── lab-9-incident-response/ - Incident response procedures
+│   └── lab-10-policy-as-code/ - Policy as Code implementation with CI/CD
 ├── advanced-challenges/ - Multi-lab integration challenges and capstone projects
 │   ├── capstone-projects/ - End-to-end security implementations
-│   └── multi-lab-challenges/ - Cross-domain security challenges
+│   └── zero-trust-challenge/ - Zero trust implementation examples
 └── resources/ - Reference materials and learning paths
     ├── aws-security-reference/ - Comprehensive AWS security guides
     └── tools-comparison/ - Security tool evaluation guides
@@ -70,14 +80,12 @@ Our labs cover the following AWS security domains:
 7. **Risk Assessment and Threat Modeling**
 8. **Infrastructure and Network Protection**
 9. **Incident Response and Recovery**
-10. **Security Hub Compliance Analysis**: Multi-framework compliance monitoring with SOC 2 and NIST mapping (Lab 11)
-11. **cATO Security Hub Integration**: Continuous ATO monitoring and compliance data export (Lab 12)
+10. **Policy as Code**: Implementation of scalable policy management via CI/CD
 
 Each lab includes:
 - Clear learning objectives mapped to AWS Well-Architected Framework
-- Detailed architecture diagrams
 - Step-by-step implementation guides
-- Complete code in both CloudFormation and Terraform
+- Complete code in CloudFormation
 - Validation checklists and troubleshooting guides
 - Advanced challenges to extend your learning
 

@@ -42,8 +42,6 @@ Before starting this lab, you should have:
 
 ## Architecture Overview
 
-![Account Governance Architecture](architecture-diagram.png)
-
 This lab implements a foundational security architecture including:
 
 - Centralized logging with CloudTrail
@@ -61,7 +59,6 @@ This lab implements a foundational security architecture including:
 - [Architecture Diagram Template](architecture-diagram-template.md) - Guide for creating visual diagrams
 - Code implementations:
   - [CloudFormation](code/cloudformation/) - Deploy via CFN templates
-  - [Terraform](code/terraform/) - Deploy via Terraform
   - [Scripts](code/scripts/) - Supporting scripts and automation
 
 ## Module Overview

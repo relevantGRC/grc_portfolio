@@ -22,8 +22,7 @@ jobs:
               required_status_checks: {
                 strict: true,
                 contexts: [
-                  'test-lab-11',
-                  'test-lab-12'
+                  'validate-cfn-templates'
                 ]
               },
               enforce_admins: true,

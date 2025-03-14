@@ -48,7 +48,6 @@ Most services used in this lab are eligible for the AWS Free Tier with some limi
 
 This lab implements an automated compliance solution in AWS:
 
-![Compliance Automation Architecture](architecture-diagram.md)
 
 The architecture includes:
 - AWS Config for compliance rule evaluation

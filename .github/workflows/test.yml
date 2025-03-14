@@ -13,8 +13,8 @@ jobs:
       matrix:
         python-version: [3.11]
         lab: [
-          'lab-11-security-hub-analyzer',
-          'lab-12-cato-sechub-exporter'
+          # Add Python-based labs here when needed
+          # Example: 'lab-10-policy-as-code' 
         ]
 
     steps:
