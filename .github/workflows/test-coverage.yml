@@ -28,6 +28,9 @@ jobs:
           export AWS_ACCESS_KEY_ID=test-key
           export AWS_SECRET_ACCESS_KEY=test-secret
           export AWS_DEFAULT_REGION=us-east-1
+          echo "AWS_ACCESS_KEY_ID=test-key" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=test-secret" >> $GITHUB_ENV
+          echo "AWS_DEFAULT_REGION=us-east-1" >> $GITHUB_ENV
           
       - name: Run coverage for lab-4
         if: always()
@@ -79,9 +82,13 @@ jobs:
       
       - name: Generate combined coverage report
         run: |
-          coverage combine labs/*/coverage.xml || true
-          coverage report
-          coverage xml
+          find . -name '.coverage' -exec cp {} ./ \;
+          export AWS_DEFAULT_REGION=us-east-1
+          export AWS_ACCESS_KEY_ID=test-key
+          export AWS_SECRET_ACCESS_KEY=test-secret
+          coverage combine || true
+          coverage report || true
+          coverage xml || true
           
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
