@@ -30,7 +30,7 @@ I'm [AJ Yawn](https://www.linkedin.com/in/ajyawn/), a cybersecurity professional
 - **Consulting Excellence**: At Coalfire, helped grow the compliance practice from 9 to 100+ people, advancing from junior auditor to principal consultant
 - **Entrepreneurial Success**: Founded ByteChek, a compliance automation startup that achieved $1M+ Annual Recurring Revenue, focusing on SOC 2 and HIPAA automation
 - **Corporate Innovation**: Served as a Partner at Armanino (Top 20 CPA firm), leading product and innovation initiatives including a audit automation tool. 
-- **LinkedIn Learning and SANS Instrucutor**: Teach courses on cloud compliance and automation at the SANS Institute and have educated over 100K learners on LinkedIn Learning including GRC courses. 
+- **LinkedIn Learning and SANS Instrucutor**: Teach courses on cloud compliance and automation at the SANS Institute and have educated over 125K learners on LinkedIn Learning including GRC courses. 
 - **Current Role**: Director of GRC Engineering at Aquia
 
 Throughout my career, I've been driven by the mission to make compliance more efficient and accessible through automation and engineering principles. This portfolio hub represents a culmination of my experiences and lessons learned in GRC Engineering.

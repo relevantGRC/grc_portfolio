@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 import pytest
 
 # Add the parent directory to sys.path to enable imports
@@ -10,14 +11,19 @@ def test_module_imports():
     """Test basic module imports work."""
     try:
         # Setup mock AWS environment
-        import sys
         import os
+        import sys
+
         sys.path.append(os.path.dirname(os.path.dirname(__file__)))
         from mock_aws import setup_mocked_aws_environment
+
         mock_patch = setup_mocked_aws_environment()
 
         # Import the modules we want to test (noqa indicates used for testing)
-        from src.scripts.lambda_functions import compromised_iam_credentials_responder  # noqa: F401
+        from src.scripts.lambda_functions import (  # noqa: F401
+            compromised_iam_credentials_responder,
+        )
+
         assert True
 
         # Stop the mock
