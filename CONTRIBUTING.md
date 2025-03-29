@@ -4,7 +4,7 @@ First off, thank you for considering contributing to the GRC Portfolio Hub! This
 
 ## Code of Conduct
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md). Please read it before contributing.
+By participating in this project, you agree to abide by the [GitHub Community Guidelines](https://docs.github.com/en/site-policy/github-terms/github-community-guidelines). Please read it before contributing.
 
 ## How Can I Contribute?
 
@@ -12,7 +12,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 
 This section guides you through submitting a bug report. Following these guidelines helps maintainers understand your report, reproduce the behavior, and find related reports.
 
-* **Use the GitHub issue tracker** - The [GitHub issue tracker](https://github.com/yourusername/GRC_Portfolio/issues) is the preferred channel for bug reports.
+* **Use the GitHub issue tracker** - The [GitHub issue tracker](https://github.com/comoelcoqui/GRC_portfolio/issues) is the preferred channel for bug reports.
 * **Describe the bug** - Provide a clear and descriptive title and details about the bug.
 * **Include reproduction steps** - Tell us how to reproduce the issue.
 * **Specify your environment** - Include which AWS region, tool versions, etc.
@@ -22,7 +22,7 @@ This section guides you through submitting a bug report. Following these guideli
 
 This section guides you through submitting an enhancement suggestion, including completely new features and minor improvements to existing functionality.
 
-* **Use the GitHub issue tracker** - The [GitHub issue tracker](https://github.com/yourusername/GRC_Portfolio/issues) is the preferred channel for enhancement suggestions.
+* **Use the GitHub issue tracker** - The [GitHub issue tracker](https://github.com/comoelcoqui/GRC_portfolio/issues) is the preferred channel for enhancement suggestions.
 * **Describe the enhancement** - Provide a clear and descriptive title and explanation of the proposed feature.
 * **Provide specific examples** - Include copy/pasteable snippets and examples of how the feature would be used.
 * **Describe the current behavior and explain the behavior you expected**
@@ -148,12 +148,12 @@ When contributing a new portfolio template, please ensure it includes:
 
 All contributions will go through the following review process:
 
-1. Initial review by a project maintainer
+1. Initial review
 2. Technical validation of any code
 3. Documentation review
 4. Final approval and merge
 
-We aim to review all pull requests within 7 days, but please be patient as all maintainers are volunteers.
+I aim to review all pull requests within 7 days, but please be patient as I manage this repository in my spare time.
 
 ## Recognition
 
