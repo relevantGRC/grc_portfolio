@@ -8,7 +8,7 @@ Before beginning this lab, ensure you have:
 
 - An AWS account with administrator access
 - AWS CLI installed and configured on your local machine
-- Terraform installed (version 1.0.0 or later) if using the Terraform implementation
+- AWS CloudFormation knowledge for deployment
 - Basic familiarity with AWS Console navigation
 
 ## Estimated Time

@@ -45,6 +45,8 @@ Throughout my career, I've been driven by the mission to make compliance more ef
 
 ## Repository Structure
 
+This repository is part of a progressive release strategy for my upcoming book. Currently, it includes:
+
 ```
 GRC_Portfolio/
 ├── README.md - You are here!
@@ -52,38 +54,30 @@ GRC_Portfolio/
 ├── LICENSE - Project license
 ├── portfolio-templates/ - Templates and examples for your GRC portfolio
 ├── labs/ - Hands-on AWS security labs with full code and documentation
-│   ├── lab-1-account-governance/ - AWS account security foundations
-│   ├── lab-2-identity-access-management/ - IAM implementation
-│   ├── lab-3-security-automation-iac/ - Security automation with IaC
-│   ├── lab-4-security-monitoring-incident-response/ - Security monitoring
-│   ├── lab-5-compliance-automation/ - Compliance automation
-│   ├── lab-6-data-security/ - Data security controls
-│   ├── lab-7-risk-threat-modeling/ - Risk assessment strategies
-│   ├── lab-8-infrastructure-protection/ - Network and infrastructure security
-│   ├── lab-9-incident-response/ - Incident response procedures
-│   └── lab-10-policy-as-code/ - Policy as Code implementation with CI/CD
-├── advanced-challenges/ - Multi-lab integration challenges and capstone projects
-│   ├── capstone-projects/ - End-to-end security implementations
-│   └── zero-trust-challenge/ - Zero trust implementation examples
+│   └── lab-1-account-governance/ - AWS account security foundations 
 └── resources/ - Reference materials and learning paths
     ├── aws-security-reference/ - Comprehensive AWS security guides
     └── tools-comparison/ - Security tool evaluation guides
 ```
 
+**Coming Soon:** Additional labs will be released weekly, leading up to the book launch. Each new lab will introduce additional AWS security domains and challenges. Stay tuned for:
+
+- IAM Implementation
+- Security Automation with IaC
+- Security Monitoring and Incident Response
+- Compliance Automation
+- Data Security and Protection
+- Risk Assessment and Threat Modeling
+- Infrastructure and Network Protection
+- Incident Response and Recovery
+- Policy as Code implementation
+- Advanced multi-lab integration challenges and capstone projects
+
 ## Labs Overview
 
-Our labs cover the following AWS security domains:
+Currently available:
 
-1. **AWS Account Governance and Security Foundations**
-2. **Identity and Access Management (IAM) Implementation**
-3. **Security Automation with Infrastructure as Code**
-4. **Security Monitoring and Incident Response**
-5. **Compliance Automation**
-6. **Data Security and Protection**
-7. **Risk Assessment and Threat Modeling**
-8. **Infrastructure and Network Protection**
-9. **Incident Response and Recovery**
-10. **Policy as Code**: Implementation of scalable policy management via CI/CD
+1. **AWS Account Governance and Security Foundations** - Learn how to establish secure AWS account configurations, implement security baselines, and monitor account-level security posture.
 
 Each lab includes:
 - Clear learning objectives mapped to AWS Well-Architected Framework
@@ -92,17 +86,20 @@ Each lab includes:
 - Validation checklists and troubleshooting guides
 - Advanced challenges to extend your learning
 
-## Advanced Challenges
+## Future Labs (Coming Weekly)
 
-### Capstone Projects
-- **Secure Data Platform**: End-to-end implementation combining concepts from multiple labs
-- **Zero Trust Architecture**: Comprehensive zero trust implementation in AWS
-- **Compliance Automation Framework**: Automated compliance monitoring and reporting
+Following our progressive release strategy, we'll be introducing new labs regularly, covering:
 
-### Multi-Lab Challenges
-- **Cross-Region Security**: Implement security controls across multiple AWS regions
-- **Advanced Incident Response**: Automated forensics and incident handling
-- **Security Automation**: Infrastructure as Code for security controls
+- **Identity and Access Management (IAM)**: Implementation of least privilege access controls
+- **Security Automation with Infrastructure as Code**: Implementing security guardrails through IaC
+- **Security Monitoring and Incident Response**: Setting up effective monitoring systems
+- **Compliance Automation**: Streamlining regulatory compliance
+- **Data Security and Protection**: Ensuring data confidentiality and integrity
+- **Risk Assessment and Threat Modeling**: Methodologies for AWS environments
+- **Infrastructure and Network Protection**: Securing AWS networking components
+- **Incident Response and Recovery**: Creating effective incident handling procedures
+- **Policy as Code**: Implementation of scalable policy management via CI/CD
+- **Advanced Capstone Projects**: End-to-end implementations that combine concepts from multiple domains
 
 ## Resources
 
