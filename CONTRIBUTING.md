@@ -12,7 +12,7 @@ By participating in this project, you agree to abide by the [GitHub Community Gu
 
 This section guides you through submitting a bug report. Following these guidelines helps maintainers understand your report, reproduce the behavior, and find related reports.
 
-* **Use the GitHub issue tracker** - The [GitHub issue tracker](https://github.com/comoelcoqui/GRC_portfolio/issues) is the preferred channel for bug reports.
+* **Use the GitHub issue tracker** - Create issues in the repository's issue tracker to report bugs.
 * **Describe the bug** - Provide a clear and descriptive title and details about the bug.
 * **Include reproduction steps** - Tell us how to reproduce the issue.
 * **Specify your environment** - Include which AWS region, tool versions, etc.
@@ -22,7 +22,7 @@ This section guides you through submitting a bug report. Following these guideli
 
 This section guides you through submitting an enhancement suggestion, including completely new features and minor improvements to existing functionality.
 
-* **Use the GitHub issue tracker** - The [GitHub issue tracker](https://github.com/comoelcoqui/GRC_portfolio/issues) is the preferred channel for enhancement suggestions.
+* **Use the GitHub issue tracker** - Create issues in the repository's issue tracker for enhancement suggestions.
 * **Describe the enhancement** - Provide a clear and descriptive title and explanation of the proposed feature.
 * **Provide specific examples** - Include copy/pasteable snippets and examples of how the feature would be used.
 * **Describe the current behavior and explain the behavior you expected**
