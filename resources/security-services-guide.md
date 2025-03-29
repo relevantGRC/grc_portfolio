@@ -1,5 +1,25 @@
 # AWS Security Services Reference Guide
 
+## Additional Resources
+
+### AWS Documentation
+- [Security Documentation](https://docs.aws.amazon.com/security/)
+- [Security Blog](https://aws.amazon.com/blogs/security/)
+- [Whitepapers](https://aws.amazon.com/whitepapers/#security)
+- [Reference Architectures](https://aws.amazon.com/architecture/)
+
+### Tools and Utilities
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [CloudFormation](https://aws.amazon.com/cloudformation/)
+- [AWS CDK](https://aws.amazon.com/cdk/)
+- [AWS SDK](https://aws.amazon.com/tools/)
+
+### Best Practices
+- [Security Pillar](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/)
+- [Security Checklist](https://d1.awsstatic.com/whitepapers/Security/AWS_Security_Checklist.pdf)
+- [Compliance Programs](https://aws.amazon.com/compliance/programs/)
+- [Partner Solutions](https://aws.amazon.com/security/partner-solutions/)
+
 ## Identity and Access Management
 
 ### AWS IAM
@@ -194,24 +214,3 @@
 3. Regular cleanup
 4. Use tiered pricing
 5. Consolidate resources
-
-
-## Additional Resources
-
-### AWS Documentation
-- [Security Documentation](https://docs.aws.amazon.com/security/)
-- [Security Blog](https://aws.amazon.com/blogs/security/)
-- [Whitepapers](https://aws.amazon.com/whitepapers/#security)
-- [Reference Architectures](https://aws.amazon.com/architecture/)
-
-### Tools and Utilities
-- [AWS CLI](https://aws.amazon.com/cli/)
-- [CloudFormation](https://aws.amazon.com/cloudformation/)
-- [AWS CDK](https://aws.amazon.com/cdk/)
-- [AWS SDK](https://aws.amazon.com/tools/)
-
-### Best Practices
-- [Security Pillar](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/)
-- [Security Checklist](https://d1.awsstatic.com/whitepapers/Security/AWS_Security_Checklist.pdf)
-- [Compliance Programs](https://aws.amazon.com/compliance/programs/)
-- [Partner Solutions](https://aws.amazon.com/security/partner-solutions/) 

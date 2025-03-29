@@ -23,6 +23,26 @@ Before deploying this template, you should have:
 2. An email address to receive security and budget notifications
 3. Basic familiarity with AWS CloudFormation
 
+## Important Notes and Limitations
+
+1. **Clean Account Requirement**: This template is designed to be deployed in a new or clean AWS account where services like CloudTrail, AWS Config, and IAM Access Analyzer are not yet configured. Deploying in an account with existing configurations for these services may cause the template to fail.
+
+2. **AWS Organizations Compatibility**: This template has significant limitations when used with accounts that are part of an AWS Organization:
+   - Organization-managed CloudTrail trails will conflict with this template's CloudTrail setup
+   - Organization-level AWS Config rules will conflict with account-level rules in this template
+   - IAM Identity Center configuration through the template may fail if already configured at the organization level
+   - The template does not support Service Control Policies (SCPs) or other organization-level security controls
+
+3. **Manual Setup Required**: Some services require manual setup before deploying this template:
+   - CloudTrail must be integrated with CloudWatch Logs for the metric filters to work correctly
+   - IAM Identity Center (SSO) setup is only initiated by the template and requires manual completion as detailed in the step-by-step guide
+
+4. **Existing Resources**: If you already have any of the following resources configured in your account, you should modify the template to skip those sections:
+   - CloudTrail trails
+   - AWS Config rules and recorder
+   - IAM Access Analyzer
+   - CloudWatch Alarms
+
 ## Deployment Instructions
 
 ### Using AWS Management Console
@@ -116,6 +136,4 @@ To completely clean up, you'll need to manually empty and delete the S3 buckets 
 
 ## Further Resources
 
-- [AWS CloudFormation Documentation](https://docs.aws.amazon.com/cloudformation/)
-- [AWS Security Best Practices](https://aws.amazon.com/architecture/security-identity-compliance/best-practices/)
-- [AWS CloudFormation Security Controls](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/security-controls.html) 
+- [AWS CloudFormation Documentation](https://docs.aws.amazon.com/cloudformation/) 
