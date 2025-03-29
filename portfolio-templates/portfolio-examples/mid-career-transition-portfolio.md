@@ -31,7 +31,7 @@ As a GRC professional with 8+ years of experience in traditional IT security env
 - Compliance Auditing and Reporting
 
 ### Tools & Technologies
-- Infrastructure as Code (Terraform, CloudFormation)
+- Infrastructure as Code (CloudFormation)
 - Security as Code (AWS CDK)
 - Scripting (Python, Bash)
 - SIEM Integration and Security Monitoring
@@ -72,7 +72,7 @@ Key learnings from this transition include the importance of automation, the shi
 - Created detailed mappings between compliance frameworks and AWS services
 - Designed technical implementation patterns for each control category
 - Developed automated compliance verification using AWS Config Rules
-- Created dashboards to monitor compliance status across environments
+- Created CloudWatch dashboards to monitor compliance status across environments
 
 **Results**:
 - Successfully passed SOC 2 audit with cloud-based controls
@@ -86,12 +86,12 @@ Key learnings from this transition include the importance of automation, the shi
 **Skills Demonstrated**:
 - AWS Organizations and multi-account strategies
 - Preventative security controls
-- Infrastructure as Code (Terraform)
+- Infrastructure as Code (CloudFormation)
 
 **Implementation Details**:
 - Designed a comprehensive set of Service Control Policies (SCPs)
 - Implemented AWS Config Rules for detective controls
-- Deployed security guardrails using Terraform modules
+- Deployed security guardrails using CloudFormation templates
 - Created automated remediation for common violations
 
 **Results**:
@@ -165,7 +165,7 @@ Supported security operations and compliance for a financial services firm:
 ### Courses and Training
 - AWS Security Specialty Certification Course - A Cloud Guru - 2022
 - Cloud Security Alliance Training - CCSK - 2021
-- Terraform for AWS - HashiCorp - 2022
+- AWS CloudFormation Advanced - A Cloud Guru - 2022
 
 ### Conferences and Events
 - AWS re:Inforce - 2023

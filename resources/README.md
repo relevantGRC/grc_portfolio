@@ -17,7 +17,7 @@ The [aws-security-reference](aws-security-reference/) directory contains:
 
 The [tools-comparison](tools-comparison/) directory provides:
 
-- Comparison of different IaC tools (CloudFormation, Terraform, CDK)
+- Comparison of different IaC tools (CloudFormation, AWS CDK)
 - Analysis of security scanning and testing tools
 - Evaluation criteria for selecting appropriate tools
 - Integration approaches for security tooling

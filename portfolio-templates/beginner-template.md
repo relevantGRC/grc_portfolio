@@ -30,7 +30,7 @@ Hello, I'm [Your Name], a Governance, Risk, and Compliance (GRC) professional wi
 - Security Control Implementation
 
 ### Tools & Technologies
-- Infrastructure as Code (Terraform, CloudFormation)
+- Infrastructure as Code (CloudFormation, AWS CDK)
 - CI/CD Security Integration
 - Scripting and Automation (Python, Bash)
 - Monitoring and Alerting

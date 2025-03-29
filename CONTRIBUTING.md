@@ -71,13 +71,11 @@ Unsure where to begin contributing? Look for these labels in the issue tracker:
 * Provide default values where it makes sense.
 * Include comments to explain complex logic.
 
-#### Terraform
-* Follow the [Terraform Style Guide](https://www.terraform.io/docs/language/syntax/style.html).
-* Use snake_case for resource names and variables.
-* Use descriptive variable names.
-* Include variable descriptions.
-* Group related resources together.
-* Use modules for reusable components.
+#### AWS CDK
+* Follow the [AWS CDK Best Practices](https://docs.aws.amazon.com/cdk/latest/guide/best-practices.html).
+* Use constructs consistently.
+* Use clear, descriptive names for constructs and properties.
+* Create reusable constructs for common patterns.
 * Include comments to explain complex logic.
 
 #### Python
@@ -120,7 +118,7 @@ When contributing a new lab, please ensure it includes:
 
 4. **Code** including:
    * CloudFormation templates
-   * Terraform configurations
+   * AWS CDK constructs (if applicable)
    * Any necessary scripts
    * Cleanup scripts
 

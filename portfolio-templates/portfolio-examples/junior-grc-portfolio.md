@@ -30,7 +30,7 @@ As an early-career GRC professional, I'm focused on building practical skills in
 - Security Control Implementation
 
 ### Tools & Technologies
-- Infrastructure as Code (Terraform basics, CloudFormation)
+- Infrastructure as Code (CloudFormation, AWS CDK basics)
 - Basic scripting (Python, Bash)
 - Version control with Git
 - Monitoring fundamentals (CloudWatch)
