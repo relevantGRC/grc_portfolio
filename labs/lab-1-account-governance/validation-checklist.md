@@ -2,44 +2,48 @@
 
 Use this checklist to verify that you have properly implemented all the security controls in the AWS Account Governance lab. Each check includes verification steps to confirm your implementation is working as expected.
 
-## Module 1: IAM Security Foundations
-
-### IAM Password Policy
-
-- [ ] **1.1 Password complexity requirements are enforced**
-  - Verification: 
-    - Go to IAM > Account settings
-    - Confirm that password policy includes:
-      - Minimum length of 14 characters
-      - Upper and lowercase letters required
-      - Numbers required
-      - Non-alphanumeric characters required
-      - Password expiration of 90 days
-      - Password reuse prevention of 24 passwords
+## Module 1: Identity Center and IAM Security Foundations
 
 ### MFA Configuration
 
-- [ ] **1.2 Root user has MFA enabled**
+- [ ] **1.1 Root user has MFA enabled**
   - Verification:
     - Go to IAM > Dashboard
     - Confirm "Root MFA" shows "Enabled"
     - Or check Security Hub > CIS AWS Foundations Benchmark > Control 1.5
 
-- [ ] **1.3 IAM admin user has MFA enabled**
+### AWS IAM Identity Center Configuration
+
+- [ ] **1.2 AWS IAM Identity Center is enabled**
   - Verification:
-    - Go to IAM > Users > [Your admin user]
-    - Under Security credentials tab, confirm MFA device is assigned
+    - Go to AWS IAM Identity Center
+    - Confirm service is enabled
+    - Verify Identity Source is properly configured
 
-### IAM Access Controls
-
-- [ ] **1.4 Admin IAM user is properly configured**
+- [ ] **1.3 Administrative user is created in Identity Center**
   - Verification:
-    - Go to IAM > Users
-    - Confirm admin user exists
-    - Check that permissions include AdministratorAccess
-    - Confirm MFA is enabled
+    - Go to IAM Identity Center > Users
+    - Confirm administrative user exists
+    - Verify user details are properly configured
 
-- [ ] **1.5 IAM Access Analyzer is enabled**
+- [ ] **1.4 MFA is enabled for Identity Center user**
+  - Verification:
+    - Go to IAM Identity Center > Users > [Your admin user]
+    - Under MFA devices tab, confirm at least one MFA device is registered
+
+- [ ] **1.5 Permission sets are properly configured**
+  - Verification:
+    - Go to IAM Identity Center > Permission sets
+    - Confirm AdministratorAccess permission set exists
+    - Verify any additional permission sets (e.g., ReadOnlyAccess)
+
+- [ ] **1.6 User is assigned to AWS account with appropriate permission set**
+  - Verification:
+    - Go to IAM Identity Center > AWS accounts
+    - Select your AWS account
+    - Verify administrative user is assigned with AdministratorAccess permission set
+
+- [ ] **1.7 IAM Access Analyzer is enabled**
   - Verification:
     - Go to IAM > Access analyzer
     - Confirm analyzer named "AccountAnalyzer" exists and is active
@@ -174,9 +178,10 @@ Use this checklist to verify that you have properly implemented all the security
 
 Perform these tests to validate your implementation works as expected:
 
-- [ ] **Test IAM password policy**
-  - Create a test IAM user with a password that doesn't meet requirements
-  - Expected result: Creation should fail
+- [ ] **Test IAM Identity Center login**
+  - Sign out and sign in through the AWS access portal URL
+  - Use your Identity Center credentials and MFA
+  - Expected result: Successful login and access to assigned AWS account
 
 - [ ] **Test CloudTrail logging**
   - Make a permissions change (create/delete a test policy)

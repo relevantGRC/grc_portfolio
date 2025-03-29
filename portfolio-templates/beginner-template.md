@@ -139,4 +139,4 @@ Hello, I'm [Your Name], a Governance, Risk, and Compliance (GRC) professional wi
 
 ---
 
-*This portfolio was created using the [GRC Portfolio Hub](https://github.com/yourusername/GRC_Portfolio) template.* 
+*This portfolio was created using the [GRC Portfolio Hub](https://github.com/ajy0127/grc_portfolio) template.* 

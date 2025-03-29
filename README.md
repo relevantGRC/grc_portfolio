@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT">
 </p>
 
-## ⚠️ Disclaimers
+## Disclaimers
 
 1. This is a personal project and does not represent or reflect the views, opinions, or work of my current employer, Aquia, or any previous employers.
 
@@ -45,7 +45,7 @@ Throughout my career, I've been driven by the mission to make compliance more ef
 
 ## Repository Structure
 
-This repository is part of a progressive release strategy for my upcoming book. Currently, it includes:
+This repository is part of a progressive release strategy for my upcoming book [GRC Engineering: Building Secure, Compliant AWS Environments](https://grcengineeringbook.com/). Currently, it includes:
 
 ```
 GRC_Portfolio/
@@ -55,9 +55,8 @@ GRC_Portfolio/
 ├── portfolio-templates/ - Templates and examples for your GRC portfolio
 ├── labs/ - Hands-on AWS security labs with full code and documentation
 │   └── lab-1-account-governance/ - AWS account security foundations 
-└── resources/ - Reference materials and learning paths
-    ├── aws-security-reference/ - Comprehensive AWS security guides
-    └── tools-comparison/ - Security tool evaluation guides
+├── resources/ - AWS security services guide
+└── config/ - Configuration files for testing and development
 ```
 
 **Coming Soon:** Additional labs will be released weekly, leading up to the book launch. Each new lab will introduce additional AWS security domains and challenges. Stay tuned for:
@@ -103,17 +102,13 @@ Following our progressive release strategy, we'll be introducing new labs regula
 
 ## Resources
 
-### AWS Security Reference
+### AWS Security Services Guide
 - Comprehensive service guides
 - Implementation best practices
 - Integration examples
 - Cost optimization strategies
-
-### Security Tools Comparison
-- AWS native vs third-party solutions
-- Feature comparison matrices
-- Cost analysis
-- Implementation considerations
+- Service comparison matrix
+- Code examples for monitoring and security
 
 
 ## How to Contribute
@@ -122,18 +117,18 @@ We welcome contributions from the community! Whether you're fixing a typo, enhan
 
 See our [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute.
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## ✨ Acknowledgements
+## Acknowledgements
 
 This project is inspired by the need for practical, hands-on resources for GRC professionals looking to demonstrate their technical capabilities in AWS security implementation.
 
-## 📞 Contact
+## Contact
 
 If you have questions or feedback, please open an issue in this repository.
 
 ---
 
-<p align="center">Created with ❤️ for the GRC community</p>
+<p align="center">Created for the GRC community</p>

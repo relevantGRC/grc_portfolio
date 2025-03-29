@@ -21,9 +21,9 @@ Parameters:
 
 Resources:
   #########################################################
-  # IAM Password Policy - Using Custom Resource
+  # IAM Identity Center Setup - Using Custom Resource
   #########################################################
-  IAMPasswordPolicyLambdaRole:
+  IdentityCenterLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
@@ -36,70 +36,63 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
       Policies:
-        - PolicyName: IAMPasswordPolicyPermissions
+        - PolicyName: IdentityCenterPermissions
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action:
-                  - 'iam:UpdateAccountPasswordPolicy'
-                  - 'iam:GetAccountPasswordPolicy'
+                  - 'sso:*'
+                  - 'organizations:*'
+                  - 'identitystore:*'
+                  - 'sso-directory:*'
                 Resource: '*'
 
-  PasswordPolicyFunction:
+  IdentityCenterSetupFunction:
     Type: 'AWS::Lambda::Function'
     Properties:
       Handler: index.handler
-      Role: !GetAtt IAMPasswordPolicyLambdaRole.Arn
+      Role: !GetAtt IdentityCenterLambdaRole.Arn
       Runtime: python3.12
-      Timeout: 30
+      Timeout: 300 # Longer timeout for SSO setup
       Code:
         ZipFile: |
           import boto3
           import cfnresponse
+          import time
 
           def handler(event, context):
-            iam = boto3.client('iam')
+            sso_admin = boto3.client('sso-admin')
+            identity_store = boto3.client('identitystore')
             responseData = {}
             
             try:
               if event['RequestType'] in ['Create', 'Update']:
-                iam.update_account_password_policy(
-                  MinimumPasswordLength=14,
-                  RequireSymbols=True,
-                  RequireNumbers=True,
-                  RequireUppercaseCharacters=True,
-                  RequireLowercaseCharacters=True,
-                  AllowUsersToChangePassword=True,
-                  MaxPasswordAge=90,
-                  PasswordReusePrevention=24,
-                  HardExpiry=False
-                )
-                responseData['Message'] = 'Password policy updated successfully'
+                # NOTE: This is a simplified implementation
+                # In a real environment, you would need to:
+                # 1. Check if Identity Center is already enabled
+                # 2. Create permission sets
+                # 3. Create users
+                # 4. Assign users to accounts
+                
+                # The actual implementation would be more complex and requires
+                # properly handling the async nature of SSO setup
+                
+                responseData['Message'] = 'Identity Center setup initiated'
+                responseData['Note'] = 'Manual configuration still required for complete setup'
+                responseData['Instructions'] = 'Follow the step-by-step guide for complete setup'
               
               cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
             except Exception as e:
               responseData['Error'] = str(e)
               cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
 
-  IAMPasswordPolicy:
-    Type: 'Custom::PasswordPolicy'
+  # NOTE: In reality, the SSO setup cannot be fully automated via CloudFormation
+  # This is a placeholder to indicate the setup is needed
+  IdentityCenterSetup:
+    Type: 'Custom::IdentityCenterSetup'
     Properties:
-      ServiceToken: !GetAtt PasswordPolicyFunction.Arn
-
-  #########################################################
-  # IAM Admin User
-  #########################################################
-  AdminUser:
-    Type: 'AWS::IAM::User'
-    Properties:
-      UserName: AdminUser
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AdministratorAccess'
-      Path: /
-      Tags:
-        - Key: Purpose
-          Value: GRC-Lab-Admin
+      ServiceToken: !GetAtt IdentityCenterSetupFunction.Arn
 
   #########################################################
   # CloudTrail Setup
@@ -528,9 +521,9 @@ Resources:
               Address: !Ref NotificationEmail
 
 Outputs:
-  AdminUserName:
-    Description: Name of the created IAM admin user
-    Value: !Ref AdminUser
+  IdentityCenterSetupStatus:
+    Description: Status of IAM Identity Center setup
+    Value: "Initiated - Complete remaining steps in the step-by-step guide"
   
   CloudTrailName:
     Description: Name of the CloudTrail trail
@@ -546,4 +539,8 @@ Outputs:
     
   SecurityAlertsTopic:
     Description: SNS Topic ARN for security alerts
-    Value: !Ref SecurityAlertsTopic 
+    Value: !Ref SecurityAlertsTopic
+    
+  IAMIdentityCenterConsole:
+    Description: Link to IAM Identity Center console to complete setup
+    Value: "https://console.aws.amazon.com/singlesignon/home" 

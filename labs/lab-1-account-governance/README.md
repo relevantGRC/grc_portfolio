@@ -5,13 +5,14 @@
 By completing this lab, you will be able to:
 
 - Implement AWS account security foundations following best practices
-- Configure IAM password policies and enforce MFA
+- Configure AWS IAM Identity Center (SSO) and enforce MFA
 - Set up AWS Config for compliance monitoring
 - Implement AWS Security Hub for centralized security management
 - Establish cost controls and budget alerts
 
 ## AWS Services Used
 
+- AWS IAM Identity Center (formerly AWS SSO)
 - AWS Identity and Access Management (IAM)
 - AWS Config
 - AWS Security Hub
@@ -78,8 +79,8 @@ For a faster implementation, use the provided automation:
 
 ## Module Overview
 
-### Module 1: IAM Security Foundations
-Configure IAM password policy, enable MFA, and implement least privilege access
+### Module 1: Identity Center and IAM Security Foundations
+Configure AWS IAM Identity Center, enable MFA, and implement least privilege access with permission sets
 
 ### Module 2: Logging and Monitoring
 Set up CloudTrail and CloudWatch for comprehensive logging and monitoring

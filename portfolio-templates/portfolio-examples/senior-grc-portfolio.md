@@ -4,15 +4,17 @@
   <h1>Sarah Chen</h1>
   <p><em>AWS Security & Compliance Leader</em></p>
   
-  <a href="mailto:sarah.chen@example.com"><img src="https://img.shields.io/badge/Email-Contact-blue?style=for-the-badge&logo=mail.ru" alt="Email"></a>
-  <a href="https://linkedin.com/in/sarahchen"><img src="https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin" alt="LinkedIn"></a>
-  <a href="https://github.com/sarahchen"><img src="https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github" alt="GitHub"></a>
+  <p>
+    <strong>Email:</strong> sarah.chen@example.com<br>
+    <strong>LinkedIn:</strong> linkedin.com/in/sarahchen<br>
+    <strong>GitHub:</strong> github.com/sarahchen
+  </p>
   
   <p>
-    <img src="https://img.shields.io/badge/AWS-Certified-FF9900?style=flat-square&logo=amazon-aws" alt="AWS Certified">
-    <img src="https://img.shields.io/badge/Security-Expert-red?style=flat-square" alt="Security Expert">
-    <img src="https://img.shields.io/badge/Compliance-Specialist-green?style=flat-square" alt="Compliance Specialist">
-    <img src="https://img.shields.io/badge/Risk-Management-purple?style=flat-square" alt="Risk Management">
+    <strong>AWS Certified</strong> | 
+    <strong>Security Expert</strong> | 
+    <strong>Compliance Specialist</strong> | 
+    <strong>Risk Management</strong>
   </p>
 </div>
 
@@ -36,34 +38,28 @@ With over 15 years of experience in information security and the last 8 years sp
 <table>
   <tr>
     <td width="33%" align="center">
-      <img src="https://raw.githubusercontent.com/sarahchen/GRC_Portfolio/main/portfolio-templates/assets/aws-security-icon.png" width="60" height="60"><br>
       <strong>AWS Security Architecture</strong><br>
       <small>Multi-account strategies, security services implementation, defense-in-depth</small>
     </td>
     <td width="33%" align="center">
-      <img src="https://raw.githubusercontent.com/sarahchen/GRC_Portfolio/main/portfolio-templates/assets/compliance-icon.png" width="60" height="60"><br>
       <strong>Compliance Automation</strong><br>
       <small>Continuous compliance, evidence collection, audit readiness</small>
     </td>
     <td width="33%" align="center">
-      <img src="https://raw.githubusercontent.com/sarahchen/GRC_Portfolio/main/portfolio-templates/assets/risk-icon.png" width="60" height="60"><br>
       <strong>Risk Management</strong><br>
       <small>Threat modeling, vulnerability management, security metrics</small>
     </td>
   </tr>
   <tr>
     <td width="33%" align="center">
-      <img src="https://raw.githubusercontent.com/sarahchen/GRC_Portfolio/main/portfolio-templates/assets/iac-icon.png" width="60" height="60"><br>
       <strong>Security as Code</strong><br>
       <small>Infrastructure as code, policy as code, security guardrails</small>
     </td>
     <td width="33%" align="center">
-      <img src="https://raw.githubusercontent.com/sarahchen/GRC_Portfolio/main/portfolio-templates/assets/incident-icon.png" width="60" height="60"><br>
       <strong>Incident Response</strong><br>
       <small>Automated detection & response, forensics, playbooks</small>
     </td>
     <td width="33%" align="center">
-      <img src="https://raw.githubusercontent.com/sarahchen/GRC_Portfolio/main/portfolio-templates/assets/leadership-icon.png" width="60" height="60"><br>
       <strong>Security Leadership</strong><br>
       <small>Strategy development, team building, executive communication</small>
     </td>
@@ -74,11 +70,11 @@ With over 15 years of experience in information security and the last 8 years sp
 
 | Area | Metric | Impact |
 |------|--------|--------|
-| 🔒 Compliance | Automated compliance controls | Reduced audit preparation time by 70% |
-| 📉 Risk Management | Implemented continuous risk assessment | Decreased high-risk findings by 65% |
-| 💰 Cost Optimization | Optimized security tooling | Reduced security tooling costs by 40% |
-| ⏱️ Incident Response | Automated incident response | Decreased MTTR from 6 hours to 30 minutes |
-| 🛡️ Threat Detection | Enhanced threat detection capabilities | Improved detection coverage by 85% |
+| Compliance | Automated compliance controls | Reduced audit preparation time by 70% |
+| Risk Management | Implemented continuous risk assessment | Decreased high-risk findings by 65% |
+| Cost Optimization | Optimized security tooling | Reduced security tooling costs by 40% |
+| Incident Response | Automated incident response | Decreased MTTR from 6 hours to 30 minutes |
+| Threat Detection | Enhanced threat detection capabilities | Improved detection coverage by 85% |
 
 ## AWS Security Architecture Blueprint
 
@@ -275,11 +271,13 @@ def remediate_noncompliant_resource(event, context):
 I'm available for strategic security consulting, speaking engagements, and advisory roles focused on AWS security architecture, compliance automation, and enterprise security transformation.
 
 <div align="center">
-  <a href="mailto:sarah.chen@example.com"><img src="https://img.shields.io/badge/Email-Contact-blue?style=for-the-badge&logo=mail.ru" alt="Email"></a>
-  <a href="https://linkedin.com/in/sarahchen"><img src="https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin" alt="LinkedIn"></a>
-  <a href="https://calendly.com/sarahchen"><img src="https://img.shields.io/badge/Calendly-Schedule-orange?style=for-the-badge&logo=calendly" alt="Calendly"></a>
+  <p>
+    <strong>Email:</strong> sarah.chen@example.com<br>
+    <strong>LinkedIn:</strong> linkedin.com/in/sarahchen<br>
+    <strong>Schedule a Meeting:</strong> calendly.com/sarahchen
+  </p>
 </div>
 
 ---
 
-<p align="center"><i>This portfolio was created using the <a href="https://github.com/sarahchen/GRC_Portfolio">GRC Portfolio Hub</a> advanced template.</i></p> 
+<p align="center"><i>This portfolio was created using the <a href="https://github.com/ajy0127/grc_portfolio">GRC Portfolio Hub</a> advanced template.</i></p> 

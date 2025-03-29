@@ -20,41 +20,11 @@ Before beginning this lab, ensure you have:
 - **Module 4**: 30 minutes
 - **Module 5**: 15 minutes
 
-## Module 1: IAM Security Foundations
+## Module 1: Identity Center and IAM Security Foundations
 
-In this module, you'll implement baseline IAM security controls to protect your AWS account.
+In this module, you'll implement AWS IAM Identity Center (formerly AWS SSO) and baseline IAM security controls to protect your AWS account.
 
-### Step 1.1: Configure IAM Password Policy
-
-1. Open the AWS Management Console
-2. Navigate to IAM Service
-3. In the left navigation pane, click on "Account settings"
-4. Under "Password policy", click "Edit"
-5. Configure the following recommended settings:
-   - Minimum password length: 14 characters
-   - Require at least one uppercase letter
-   - Require at least one lowercase letter
-   - Require at least one number
-   - Require at least one non-alphanumeric character
-   - Enable password expiration after 90 days
-   - Prevent password reuse (remember last 24 passwords)
-6. Click "Save changes"
-
-**Alternatively, using AWS CLI**:
-
-```bash
-aws iam update-account-password-policy \
-    --minimum-password-length 14 \
-    --require-symbols \
-    --require-numbers \
-    --require-uppercase-characters \
-    --require-lowercase-characters \
-    --allow-users-to-change-password \
-    --max-password-age 90 \
-    --password-reuse-prevention 24
-```
-
-### Step 1.2: Enable MFA for Root User
+### Step 1.1: Enable MFA for Root User
 
 1. Sign in to the AWS Management Console as the root user
 2. In the navigation bar, click on your account name, then "Security credentials"
@@ -65,22 +35,61 @@ aws iam update-account-password-policy \
 
 **Important**: Store your MFA device and backup codes securely. Losing access to your MFA device without backup recovery options could lock you out of your account.
 
-### Step 1.3: Create an IAM Admin User
+### Step 1.2: Enable AWS IAM Identity Center
 
-1. Navigate to IAM Service
-2. Click "Users" in the left navigation pane
-3. Click "Create user"
-4. Enter a username (e.g., "AdminUser")
-5. Select "Provide user access to the AWS Management Console"
-6. Select "I want to create an IAM user"
-7. Set a custom password and uncheck "Users must create a new password at next sign-in"
-8. Click "Next"
-9. Select "Attach policies directly"
-10. Search for and select "AdministratorAccess"
-11. Click "Next", review the details, and click "Create user"
-12. Set up MFA for this admin user by selecting the user, going to the "Security credentials" tab, and clicking "Assign MFA device"
+1. Navigate to the AWS IAM Identity Center service in the AWS Management Console
+2. Click "Enable" to start the setup process
+3. Choose "Default IAM Identity Center directory" as the identity source
+   - Note: For production environments, you might prefer Microsoft Active Directory, Okta, or another identity provider
+4. Click "Next" to complete the setup
 
-### Step 1.4: Set up IAM Access Analyzer
+### Step 1.3: Create an Administrative User in Identity Center
+
+1. In the IAM Identity Center console, navigate to "Users" in the left sidebar
+2. Click "Add user"
+3. Fill out the user details:
+   - Username (e.g., "admin")
+   - Email address
+   - First name and Last name
+   - Confirm email
+4. Click "Next"
+5. On the "Add user to groups" page, click "Next" (we'll create groups in the next step)
+6. Review the information and click "Add user"
+
+### Step 1.4: Set Up MFA for Identity Center User
+
+1. Stay in the IAM Identity Center console and navigate to "Users"
+2. Select the administrative user you just created
+3. Under the "MFA devices" tab, click "Register MFA device"
+4. Choose your preferred MFA type (Authenticator app, Security key, or Built-in authenticator)
+5. Follow the prompts to register the MFA device
+6. Click "Register MFA device" to complete the process
+
+### Step 1.5: Create Permission Sets
+
+1. In the IAM Identity Center console, navigate to "Permission sets" in the left sidebar
+2. Click "Create permission set"
+3. Select "Predefined permission set"
+4. Choose "AdministratorAccess" for your admin user
+5. Click "Next"
+6. Provide a name for the permission set (e.g., "AdministratorAccess")
+7. Click "Next", review the information, and click "Create"
+8. Repeat the process to create additional permission sets for different job functions:
+   - Select "Predefined permission set" again
+   - Choose "ReadOnlyAccess" for auditors or viewers
+   - Click "Next", provide a name, and create the permission set
+
+### Step 1.6: Assign Users to AWS Accounts
+
+1. In the IAM Identity Center console, navigate to "AWS accounts" in the left sidebar
+2. Select your AWS account
+3. Click "Assign users or groups"
+4. Select "Users" and choose your administrative user
+5. Click "Next"
+6. Select the "AdministratorAccess" permission set
+7. Click "Next", review the information, and click "Submit"
+
+### Step 1.7: Set up IAM Access Analyzer
 
 1. Navigate to IAM Service
 2. Click "Access analyzer" in the left navigation pane

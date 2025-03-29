@@ -63,9 +63,8 @@ After completing your portfolio:
 
 If you have questions about creating your portfolio:
 
-1. Check the [FAQ](../resources/portfolio-faq.md) for common questions
-2. Open an issue in this repository
-3. Reach out to the community for advice
+1. Open an issue in this repository
+2. Reach out to the community for advice
 
 ---
 

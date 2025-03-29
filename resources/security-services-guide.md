@@ -168,42 +168,6 @@
   - Evidence review
   - Report sharing
 
-## Service Integration Examples
-
-### Security Hub Integration
-```json
-{
-  "source": ["aws.guardduty", "aws.macie"],
-  "detail-type": ["GuardDuty Finding", "Macie Alert"],
-  "detail": {
-    "severity": ["HIGH", "CRITICAL"]
-  }
-}
-```
-
-### GuardDuty to Lambda
-```python
-def handle_finding(event, context):
-    finding = event['detail']
-    if finding['type'].startswith('UnauthorizedAccess'):
-        # Implement response
-        block_ip(finding['service']['action']['networkConnectionAction']['remoteIpDetails']['ipAddressV4'])
-```
-
-### Config Rule
-```json
-{
-  "ConfigRuleName": "required-tags",
-  "Source": {
-    "Owner": "AWS",
-    "SourceIdentifier": "REQUIRED_TAGS"
-  },
-  "InputParameters": {
-    "tag1Key": "Environment",
-    "tag1Value": "Production"
-  }
-}
-```
 
 ## Service Comparison Matrix
 
@@ -231,35 +195,6 @@ def handle_finding(event, context):
 4. Use tiered pricing
 5. Consolidate resources
 
-## Monitoring and Metrics
-
-### CloudWatch Metrics
-```bash
-# GuardDuty findings
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/GuardDuty \
-  --metric-name FindingsCount \
-  --dimensions Name=Severity,Value=High
-
-# WAF requests
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/WAF \
-  --metric-name BlockedRequests \
-  --dimensions Name=WebACL,Value=MyWebACL
-```
-
-### Log Analysis
-```bash
-# CloudTrail analysis
-aws logs filter-log-events \
-  --log-group-name /aws/cloudtrail \
-  --filter-pattern "{ $.eventName = ConsoleLogin }"
-
-# VPC Flow Logs
-aws logs filter-log-events \
-  --log-group-name /aws/vpc/flow-logs \
-  --filter-pattern "[version, account, eni, source, destination, srcport, destport, protocol, packets, bytes, start, end, action, log-status]"
-```
 
 ## Additional Resources
 
