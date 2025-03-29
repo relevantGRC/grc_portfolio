@@ -53,13 +53,28 @@ This lab implements a foundational security architecture including:
 
 - [Step-by-Step Guide](step-by-step-guide.md) - Detailed implementation instructions
 - [Validation Checklist](validation-checklist.md) - Verify your implementation
-- [Challenges](challenges.md) - Additional tasks to extend your learning
-- [Open Challenges](open-challenges.md) - Open-ended scenarios with creative solutions
 - [Assessment Worksheet](assessment-worksheet.md) - Document your implementation and reflections
 - [Architecture Diagram Template](architecture-diagram-template.md) - Guide for creating visual diagrams
-- Code implementations:
-  - [CloudFormation](code/cloudformation/) - Deploy via CFN templates
-  - [Scripts](code/scripts/) - Supporting scripts and automation
+
+## Deployment Options
+
+This lab can be implemented through two main approaches:
+
+### 1. Manual Implementation
+Follow the [Step-by-Step Guide](step-by-step-guide.md) to manually configure each service through the AWS Management Console or CLI. This approach provides a hands-on learning experience by directly interacting with each service.
+
+### 2. Automated Deployment 
+For a faster implementation, use the provided automation:
+
+- **CloudFormation Template**: 
+  - Located in [code/cloudformation/](code/cloudformation/)
+  - Creates all required resources in one deployment
+  - See the CloudFormation README for detailed instructions
+
+- **Support Scripts**:
+  - Located in [code/scripts/](code/scripts/)
+  - Includes scripts for validating compliance, generating security reports, and cleanup
+  - Automates common tasks in the lab
 
 ## Module Overview
 
@@ -93,4 +108,4 @@ Completing this lab demonstrates your ability to:
 
 ## Next Steps
 
-After completing this lab, we recommend continuing to [Lab 2: Identity and Access Management Implementation](../lab-2-identity-access-management/) to build on these foundations. 
+After completing this lab, continue exploring the other AWS security domains as they become available in future lab releases. Stay tuned for our upcoming labs focusing on Identity and Access Management and other crucial security domains.

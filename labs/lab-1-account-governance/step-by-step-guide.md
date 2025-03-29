@@ -172,16 +172,6 @@ In this module, you'll set up AWS Config for continuous compliance monitoring.
    - restricted-common-ports
 8. Click "Next" and then "Confirm"
 
-### Step 3.2: Set up Custom AWS Config Rules
-
-1. In AWS Config, click "Rules" in the left navigation pane
-2. Click "Add rule" and then "Add custom rule"
-3. Choose "Create AWS Lambda function"
-4. Create a Lambda function that checks for unused IAM credentials
-5. Configure the custom rule to trigger on a scheduled basis
-6. Click "Save"
-
-Repeat this process to add other custom rules important to your organization.
 
 ## Module 4: Security Hub Implementation
 
@@ -273,7 +263,7 @@ After completing this lab, consider:
 1. Enabling additional security services like Amazon GuardDuty for threat detection
 2. Implementing more comprehensive tagging strategies for resource management
 3. Setting up more detailed monitoring and alerting
-4. Proceeding to [Lab 2: Identity and Access Management](../lab-2-identity-access-management/) to build on these security foundations
+4. Stay tuned for future lab releases that will build on these security foundations
 
 ## Additional Resources
 
