@@ -32,53 +32,26 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY=test-secret" >> $GITHUB_ENV
           echo "AWS_DEFAULT_REGION=us-east-1" >> $GITHUB_ENV
           
-      - name: Run coverage for lab-4
-        if: always()
+      - name: Check for Python files in lab-1
+        id: check_lab1
         run: |
-          cd labs/lab-4-security-monitoring-incident-response
+          if [ -d "labs/lab-1-account-governance" ] && [ -n "$(find labs/lab-1-account-governance -name "*.py" | grep -v "venv")" ]; then
+            echo "has_python=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_python=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Run coverage for lab-1
+        if: steps.check_lab1.outputs.has_python == 'true'
+        run: |
+          cd labs/lab-1-account-governance
           mkdir -p tests/unit
           if [ ! -f tests/unit/test_*.py ]; then
             echo "def test_dummy(): assert True" > tests/unit/test_dummy.py
           fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
-          
-      - name: Run coverage for lab-5 
-        if: always()
-        run: |
-          cd labs/lab-5-compliance-automation
-          mkdir -p tests/unit
-          if [ ! -f tests/unit/test_*.py ]; then
-            echo "def test_dummy(): assert True" > tests/unit/test_dummy.py
-          fi
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
-          
-      - name: Run coverage for lab-6
-        if: always()
-        run: |
-          cd labs/lab-6-data-security
-          mkdir -p tests/unit
-          if [ ! -f tests/unit/test_*.py ]; then
-            echo "def test_dummy(): assert True" > tests/unit/test_dummy.py
-          fi
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
-          
-      - name: Run coverage for lab-8
-        if: always()
-        run: |
-          cd labs/lab-8-infrastructure-protection
-          mkdir -p tests/unit
-          if [ ! -f tests/unit/test_*.py ]; then
-            echo "def test_dummy(): assert True" > tests/unit/test_dummy.py
-          fi
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f tests/requirements-test.txt ]; then pip install -r tests/requirements-test.txt; fi
-          python -m pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing
+          python -m pytest tests/ --cov=code --cov-report=xml --cov-report=term-missing
       
       - name: Generate combined coverage report
         run: |

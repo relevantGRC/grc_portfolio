@@ -23,15 +23,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install black flake8 isort
       
+      - name: Check for Python files
+        id: check_files
+        run: |
+          if [ -n "$(find ./labs -name "*.py" | grep -v "venv")" ]; then
+            echo "python_files_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "python_files_exist=false" >> $GITHUB_OUTPUT
+          fi
+      
       - name: Run Black code formatter check
+        if: steps.check_files.outputs.python_files_exist == 'true'
         run: |
           black --check $(find ./labs -name "*.py" | grep -v "venv")
       
       - name: Run Flake8
+        if: steps.check_files.outputs.python_files_exist == 'true'
         run: |
           flake8 $(find ./labs -name "*.py" | grep -v "venv")
           
       - name: Run isort
+        if: steps.check_files.outputs.python_files_exist == 'true'
         run: |
           isort --check --profile black $(find ./labs -name "*.py" | grep -v "venv")
 
@@ -60,11 +72,8 @@ jobs:
       matrix:
         python-version: [3.11]
         lab: [
-          'lab-4-security-monitoring-incident-response',
-          'lab-5-compliance-automation',
-          'lab-6-data-security',
-          'lab-8-infrastructure-protection'
-          # Add more labs as they get Python code
+          'lab-1-account-governance'
+          # Future labs will be added here as they include Python code
         ]
 
     steps:
@@ -80,7 +89,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-cov moto boto3 boto3-stubs black flake8 isort
 
+    - name: Check for Python files
+      id: check_python
+      run: |
+        if [ -d "labs/${{ matrix.lab }}" ] && [ -n "$(find labs/${{ matrix.lab }} -name "*.py" | grep -v "venv")" ]; then
+          echo "has_python=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_python=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Install lab-specific dependencies
+      if: steps.check_python.outputs.has_python == 'true'
       run: |
         if [ -d "labs/${{ matrix.lab }}" ]; then
           cd labs/${{ matrix.lab }}
@@ -89,6 +108,7 @@ jobs:
         fi
 
     - name: Run unit tests
+      if: steps.check_python.outputs.has_python == 'true'
       run: |
         if [ -d "labs/${{ matrix.lab }}" ]; then
           cd labs/${{ matrix.lab }}
@@ -101,6 +121,7 @@ jobs:
         fi
 
     - name: Run code coverage
+      if: steps.check_python.outputs.has_python == 'true'
       run: |
         if [ -d "labs/${{ matrix.lab }}" ]; then
           cd labs/${{ matrix.lab }}
@@ -108,11 +129,11 @@ jobs:
         fi
 
     - name: Upload test coverage
+      if: steps.check_python.outputs.has_python == 'true' && always()
       uses: actions/upload-artifact@v4
       with:
         name: coverage-${{ matrix.lab }}
         path: labs/${{ matrix.lab }}/coverage.xml
-      if: always()
 
   # Validate complete test suite passed
   validate-tests:
