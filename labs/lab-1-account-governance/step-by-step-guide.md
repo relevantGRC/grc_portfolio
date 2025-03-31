@@ -171,15 +171,30 @@ In this module, you'll set up AWS Config for continuous compliance monitoring.
    - Set a unique bucket name (e.g., "config-bucket-[account-id]")
 5. Enable "Enable Amazon SNS topic" and create a new topic named "ConfigAlerts"
 6. Click "Next"
-7. On the "Rules" page, select the following rules:
-   - cloudtrail-enabled
-   - iam-password-policy
-   - mfa-enabled-for-iam-console-access
-   - root-account-mfa-enabled
-   - s3-bucket-public-write-prohibited
-   - restricted-ssh
-   - restricted-common-ports
-8. Click "Next" and then "Confirm"
+7. Skip adding rules for now (click "Next" without selecting any rules)
+8. Click "Confirm" to enable AWS Config
+
+### Step 3.2: Deploy Config Rules Using CloudFormation
+
+Now that you have AWS Config set up, you'll use CloudFormation to deploy a set of fundamental security rules:
+
+1. Navigate to the CloudFormation service
+2. Click "Create stack" > "With new resources (standard)"
+3. Under "Specify template":
+   - Select "Upload a template file"
+   - Click "Choose file" and select the `account-governance.yaml` file from the provided lab files
+4. Click "Next"
+5. Enter a stack name (e.g., "config-security-rules")
+6. Click "Next", then "Next" again on the Configure stack options page
+7. Review the settings and click "Create stack"
+8. Wait for the stack creation to complete (Status: CREATE_COMPLETE)
+
+This CloudFormation template deploys five essential AWS Config rules:
+- IAM Password Policy check
+- Root account MFA check
+- IAM User MFA check
+- CloudTrail enabled check
+- S3 bucket public write protection check
 
 
 ## Module 4: Security Hub Implementation

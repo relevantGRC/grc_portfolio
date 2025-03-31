@@ -1,47 +1,30 @@
-# AWS Account Governance CloudFormation Template
+# AWS Config Rules CloudFormation Template
 
-This directory contains a comprehensive CloudFormation template that implements the AWS account governance controls described in Lab 1. The template automates the deployment of security best practices for AWS accounts.
+This directory contains a CloudFormation template that implements essential AWS Config rules for monitoring security compliance in your AWS account.
 
 ## Template Overview
 
-The `account-governance.yaml` template implements the following security controls:
+The `account-governance.yaml` template implements the following AWS Config rules:
 
-- **IAM Password Policy** - Enforces strong password requirements
-- **IAM Admin User** - Creates a secure administrative user
-- **CloudTrail** - Enables comprehensive AWS API logging
-- **AWS Config** - Sets up configuration monitoring with security rules
-- **IAM Access Analyzer** - Identifies unintended resource access
-- **CloudWatch Alarms** - Configures security monitoring alerts
-- **SNS Notifications** - Sends email alerts for security events
-- **AWS Budget** - Creates cost monitoring and alerting
+- **IAM Password Policy** - Checks if your account's password policy meets security requirements
+- **Root Account MFA** - Verifies that MFA is enabled for the root user 
+- **IAM User MFA** - Checks if MFA is enabled for IAM users with console access
+- **CloudTrail Enabled** - Confirms that AWS CloudTrail is properly configured
+- **S3 Public Write** - Ensures S3 buckets don't allow public write access
 
 ## Prerequisites
 
 Before deploying this template, you should have:
 
-1. AWS account with permissions to create all the resources in the template
-2. An email address to receive security and budget notifications
+1. AWS account with permissions to create AWS Config Rules
+2. AWS Config already enabled and configured in your account
 3. Basic familiarity with AWS CloudFormation
 
-## Important Notes and Limitations
+## Important Notes 
 
-1. **Clean Account Requirement**: This template is designed to be deployed in a new or clean AWS account where services like CloudTrail, AWS Config, and IAM Access Analyzer are not yet configured. Deploying in an account with existing configurations for these services may cause the template to fail.
+1. **AWS Config Requirement**: This template deploys only AWS Config rules. You must first manually configure AWS Config in your account as described in the lab's step-by-step guide.
 
-2. **AWS Organizations Compatibility**: This template has significant limitations when used with accounts that are part of an AWS Organization:
-   - Organization-managed CloudTrail trails will conflict with this template's CloudTrail setup
-   - Organization-level AWS Config rules will conflict with account-level rules in this template
-   - IAM Identity Center configuration through the template may fail if already configured at the organization level
-   - The template does not support Service Control Policies (SCPs) or other organization-level security controls
-
-3. **Manual Setup Required**: Some services require manual setup before deploying this template:
-   - CloudTrail must be integrated with CloudWatch Logs for the metric filters to work correctly
-   - IAM Identity Center (SSO) setup is only initiated by the template and requires manual completion as detailed in the step-by-step guide
-
-4. **Existing Resources**: If you already have any of the following resources configured in your account, you should modify the template to skip those sections:
-   - CloudTrail trails
-   - AWS Config rules and recorder
-   - IAM Access Analyzer
-   - CloudWatch Alarms
+2. **AWS Organizations Compatibility**: If your account is part of an AWS Organization that uses organization-level Config rules, these account-level rules may be redundant.
 
 ## Deployment Instructions
 
@@ -52,63 +35,41 @@ Before deploying this template, you should have:
 3. Under "Specify template", select "Upload a template file"
 4. Click "Choose file" and select the `account-governance.yaml` file
 5. Click "Next"
-6. Enter a Stack name (e.g., "GRC-Lab-Account-Governance")
-7. Fill in the required parameters:
-   - **NotificationEmail**: Email address to receive security alerts
-   - **CloudTrailBucketName**: Globally unique name for the CloudTrail S3 bucket (e.g., "cloudtrail-logs-[account-id]")
-   - **ConfigBucketName**: Globally unique name for the AWS Config S3 bucket (e.g., "config-logs-[account-id]")
-   - **MonthlyBudgetAmount**: Your monthly budget amount in USD (default: 100)
-8. Click "Next", review the stack options, and click "Next" again
-9. Review the configuration, acknowledge IAM resource creation, and click "Create stack"
-10. Wait for the stack creation to complete (approximately 5-10 minutes)
+6. Enter a Stack name (e.g., "config-security-rules")
+7. Click "Next", review the stack options, and click "Next" again
+8. Review the configuration, acknowledge IAM resource creation if prompted, and click "Create stack"
+9. Wait for the stack creation to complete (typically 1-2 minutes)
 
 ### Using AWS CLI
 
 ```bash
 aws cloudformation create-stack \
-  --stack-name GRC-Lab-Account-Governance \
+  --stack-name config-security-rules \
   --template-body file://account-governance.yaml \
-  --parameters \
-    ParameterKey=NotificationEmail,ParameterValue=your.email@example.com \
-    ParameterKey=CloudTrailBucketName,ParameterValue=cloudtrail-logs-123456789012 \
-    ParameterKey=ConfigBucketName,ParameterValue=config-logs-123456789012 \
-    ParameterKey=MonthlyBudgetAmount,ParameterValue=100 \
-  --capabilities CAPABILITY_NAMED_IAM
+  --capabilities CAPABILITY_IAM
 ```
 
 ## Post-Deployment Steps
 
 After deploying the template:
 
-1. **Confirm SNS subscription**: Check your email and confirm the subscription to receive security alerts
-2. **Set up MFA for the admin user**: CloudFormation cannot automatically set up MFA, so you'll need to manually configure it
-3. **Verify CloudTrail is logging**: Check the CloudTrail console to ensure events are being recorded
-4. **Review AWS Config rules**: Check the AWS Config console to review the compliance status of your resources
-
-## Template Parameters
-
-| Parameter | Description | Default | Required |
-|-----------|-------------|---------|----------|
-| NotificationEmail | Email address to receive security notifications | None | Yes |
-| CloudTrailBucketName | Name of the S3 bucket for CloudTrail logs (must be globally unique) | None | Yes |
-| ConfigBucketName | Name of the S3 bucket for AWS Config logs (must be globally unique) | None | Yes |
-| MonthlyBudgetAmount | Monthly budget amount in USD | 100 | No |
+1. Navigate to AWS Config in the console
+2. Go to "Rules" to review your newly created Config rules
+3. Wait a few minutes for the initial evaluation to complete
+4. Check the compliance status of each rule and remediate any non-compliant resources
 
 ## Template Outputs
 
 | Output | Description |
 |--------|-------------|
-| AdminUserName | Name of the created IAM admin user |
-| CloudTrailName | Name of the CloudTrail trail |
-| CloudTrailS3Bucket | S3 bucket storing CloudTrail logs |
-| ConfigS3Bucket | S3 bucket storing AWS Config snapshots |
-| SecurityAlertsTopic | SNS Topic ARN for security alerts |
+| ConfigRulesDeployed | Confirmation that Config rules were successfully deployed |
 
-## Security Considerations
+## Security Benefits
 
-- The template creates an IAM user with administrative privileges. Ensure you follow security best practices by setting up MFA and rotating credentials regularly.
-- S3 buckets created by this template have public access blocked but review the bucket policies for any specific security requirements.
-- Review the CloudWatch alarms and metric filters to ensure they meet your specific security monitoring needs.
+- Provides automated, continuous assessment of security controls
+- Helps identify security issues like missing MFA, weak password policies, and public S3 buckets
+- Establishes a foundation for compliance monitoring
+- Serves as an introduction to Infrastructure as Code (IaC) for security controls
 
 ## Cleanup
 
@@ -117,23 +78,15 @@ To remove all resources created by this template:
 1. Go to the CloudFormation console
 2. Select the stack you created
 3. Click "Delete" and confirm the deletion
-4. Note: The S3 buckets have a Retain deletion policy and won't be automatically deleted to prevent data loss
 
 Alternatively, using AWS CLI:
 
 ```bash
-aws cloudformation delete-stack --stack-name GRC-Lab-Account-Governance
+aws cloudformation delete-stack --stack-name config-security-rules
 ```
-
-To completely clean up, you'll need to manually empty and delete the S3 buckets after the stack deletion completes.
 
 ## Troubleshooting
 
-- **Template validation errors**: Ensure you're using the latest version of the template and check for any syntax errors.
-- **IAM permissions**: Ensure you have sufficient permissions to create all the resources in the template.
-- **S3 bucket names**: If creation fails due to S3 bucket names, try different names as they must be globally unique.
-- **CloudWatch Logs**: If CloudWatch alarms fail to create, ensure that CloudTrail is correctly configured and sending logs to CloudWatch Logs.
-
-## Further Resources
-
-- [AWS CloudFormation Documentation](https://docs.aws.amazon.com/cloudformation/) 
+- **No Configuration Recorder**: If deployment fails with "NoAvailableConfigurationRecorder", ensure you have enabled AWS Config first
+- **Permission errors**: Verify you have sufficient permissions to create AWS Config Rules 
+- **Resource already exists**: If rules with the same names already exist, either delete them or modify the template
