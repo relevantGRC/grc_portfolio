@@ -64,12 +64,14 @@ This lab can be implemented through two main approaches:
 ### 1. Manual Implementation
 Follow the [Step-by-Step Guide](step-by-step-guide.md) to manually configure each service through the AWS Management Console or CLI. This approach provides a hands-on learning experience by directly interacting with each service.
 
-### 2. Automated Deployment 
-For a faster implementation, use the provided automation:
+### 2. Semi-Automated Deployment 
+For a hybrid implementation approach, use the provided automation tools:
 
 - **CloudFormation Template**: 
   - Located in [code/cloudformation/](code/cloudformation/)
-  - Creates all required resources in one deployment
+  - Specifically focuses on deploying essential AWS Config rules
+  - Designed to be used after manually setting up AWS Config
+  - Introduces Infrastructure as Code concepts with a focused template
   - See the CloudFormation README for detailed instructions
 
 - **Support Scripts**:
