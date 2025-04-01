@@ -22,9 +22,11 @@ Before deploying this template, you should have:
 
 ## Important Notes 
 
-1. **AWS Config Requirement**: This template deploys only AWS Config rules. You must first manually configure AWS Config in your account as described in the lab's step-by-step guide.
+1. **AWS Config Requirement**: This template deploys ONLY AWS Config rules, not all required resources. You must first manually configure AWS Config in your account as described in the lab's step-by-step guide.
 
-2. **AWS Organizations Compatibility**: If your account is part of an AWS Organization that uses organization-level Config rules, these account-level rules may be redundant.
+2. **Partial Automation**: This template is intended for a semi-automated deployment approach and only handles the Config rules component of the lab. You'll still need to manually set up AWS Config, IAM Identity Center, CloudTrail, Security Hub, and other services as described in the step-by-step guide.
+
+3. **AWS Organizations Compatibility**: If your account is part of an AWS Organization that uses organization-level Config rules, these account-level rules may be redundant.
 
 ## Deployment Instructions
 
