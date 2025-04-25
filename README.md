@@ -1,4 +1,4 @@
-# GRC Portfolio Hub
+# GRC Command Hub
 
   [![Test Suite](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml/badge.svg)](https://github.com/ajy0127/grc_portfolio/actions/workflows/test.yml)
 
